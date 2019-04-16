@@ -5,13 +5,18 @@ with open(os.devnull, 'w') as f:
     sys.stdout = f
     import pygame
     sys.stdout = oldstdout
-if not os.path.exists(os.path.join(".2048data")):
-    os.system("mkdir .2048data")
-    if sys.platform == "win32":
-        os.system("powershell.exe (new-object System.Net.WebClient).DownloadFile('https://github.com/101arrowz/2048/raw/master/.2048data/ClearSans-Regular.ttf','"+os.path.join('.2048data', 'ClearSans-Regular.ttf')+"')")
+if not os.path.exists(os.path.join(".2048data", "ClearSans-Regular.ttf")):
+    try:
+        os.system("mkdir .2048data")
+    except:
+        pass
+    print("Attempting to download font... Either this is the first run or the game directory was not found.")
+    if os.system("ping "+("-n" if sys.platform == "win32" else "-c")+" 1 github.com"):
+        print("Either GitHub is down (unlikely) or you are not connected to the internet. Connect to the internet next time to download the font. You will not need internet connectivity after that. Exiting...")
+        sys.exit()
     else:
-        os.system("curl -L -o .2048data/ClearSans-Regular.ttf 'https://github.com/101arrowz/2048/raw/master/.2048data/ClearSans-Regular.ttf'")
-    
+        os.system(("powershell.exe (new-object System.Net.WebClient).DownloadFile('https://github.com/101arrowz/2048/raw/master/.2048data/ClearSans-Regular.ttf','"+os.path.join('.2048data', 'ClearSans-Regular.ttf')+"')" if sys.platform == "win32" else "curl -L -o "+os.path.join(".2048data", "ClearSans-Regular.ttf")+" 'https://github.com/101arrowz/2048/raw/master/.2048data/ClearSans-Regular.ttf'"))
+        print("Font successfully downloaded!")
 # ROUNDED RECTANGLE CODE https://www.pygame.org/project-AAfilledRoundedRect-2349-.html
 
 def AAfilledRoundedRect(surface,color,rect,radius=0.4):
@@ -315,10 +320,7 @@ def startGame(FPS=60, text=False, width=400, square=False, load=None):
         updateDisplay(d, square=square)
         if printout:
             if text:
-                try:
-                    os.system("clear")
-                except:
-                    os.system("cls")
+                os.system("cls" if sys.platform == "win32" else "clear")
                 print(returnFormattedObjects(reset=True, spacing=2))
     pygame.quit()
 def addArgs():
