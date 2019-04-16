@@ -1,7 +1,7 @@
 # 2048
 2048 in Python 3
 
-Self contained and has a plethora of command-line options.
+Self-contained and cross-platform. Has a plethora of command-line options.
 
 # Pre-requisites
 Python 3.x and the package `pygame` must be installed.
