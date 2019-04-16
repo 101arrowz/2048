@@ -5,8 +5,8 @@ with open(os.devnull, 'w') as f:
     sys.stdout = f
     import pygame
     sys.stdout = oldstdout
-if not os.path.exists(os.path.join("data")):
-    os.system("mkdir data")
+if not os.path.exists(os.path.join(".2048data")):
+    os.system("mkdir .2048data")
     
 # ROUNDED RECTANGLE CODE https://www.pygame.org/project-AAfilledRoundedRect-2349-.html
 
@@ -298,7 +298,7 @@ def startGame(FPS=60, text=False, width=400, square=False, load=None):
         for e in pygame.event.get():
             if e.type == pygame.QUIT:
                 playing = False
-                with open(os.path.join(".2048data", "settings.2048"), 'wb') as f:
+                with open(os.path.join(".2048data", "game.2048"), 'wb') as f:
                     pickle.dump(objects, f)
             if e.type == pygame.KEYDOWN:
                 cont = doMerges(e.key)
