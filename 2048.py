@@ -371,7 +371,7 @@ def addArgs():
         with open("data/.settings.2048", 'rb') as f:
             argsFromFile = pickle.load(f)
     except:
-        argsFromFile = {'FPS': 60, 'width': 400, 'text': False, 'square': False, 'newgame': False, 'store': False}
+        argsFromFile = {'FPS': 60, 'width': int(maxw*2/3), 'text': False, 'square': False, 'newgame': False, 'store': False}
 
     if args == {'FPS': None, 'width': None, 'text': False, 'square': False, 'newgame': False, 'store': False}:
         args = argsFromFile
