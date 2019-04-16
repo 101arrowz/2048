@@ -7,6 +7,10 @@ with open(os.devnull, 'w') as f:
     sys.stdout = oldstdout
 if not os.path.exists(os.path.join(".2048data")):
     os.system("mkdir .2048data")
+    if sys.platform == "win32":
+        os.system("powershell.exe (new-object System.Net.WebClient).DownloadFile('https://github.com/101arrowz/2048/raw/extra/ClearSans-Regular.ttf','"+os.path.join('.2048data', 'ClearSans-Regular.ttf')+"')")
+    else:
+        os.system("curl -L -o .2048data/ClearSans-Regular.ttf 'https://github.com/101arrowz/2048/raw/extra/ClearSans-Regular.ttf'")
     
 # ROUNDED RECTANGLE CODE https://www.pygame.org/project-AAfilledRoundedRect-2349-.html
 
@@ -337,23 +341,27 @@ def startGame(FPS=60, text=False, width=400, square=False, load=None):
 def addArgs():
     import argparse
     global objects
-    if sys.platform == "darwin":
-        parser = argparse.ArgumentParser(description='Play 2048!') #, prog='open 2048.app')
-        resline = os.popen("system_profiler SPDisplaysDataType | grep Resolution | awk '/Resolution/{print $2, $3, $4}'").read().split("x")
-        w = int(resline[0])
-        h = int(resline[1])
-    elif sys.platform == "win32":
-        parser = argparse.ArgumentParser(description='Play 2048!') #, prog='start 2048.exe')
-        reslines = [line for line in os.popen("wmic path Win32_VideoController get CurrentVerticalResolution,CurrentHorizontalResolution /format:value").read().split('\n') if line]
-        w = int(reslines[0].split("=")[-1])
-        h = int(reslines[1].split("=")[-1])
-    elif "linux" in sys.platform.lower():
-        parser = argparse.ArgumentParser(description='Play 2048!') #, prog='./2048')
-        resline = os.popen("xdpyinfo | awk '/dimensions/{print $2}'").read().split('x')
-        w = int(resline[0])
-        h = int(resline[1])
-    else:
-        parser = argparse.ArgumentParser(description='Play 2048!')
+    try:
+        if sys.platform == "darwin":
+            parser = argparse.ArgumentParser(description='Play 2048!') #, prog='open 2048.app')
+            resline = os.popen("system_profiler SPDisplaysDataType | grep Resolution | awk '/Resolution/{print $2, $3, $4}'").read().split("x")
+            w = int(resline[0])
+            h = int(resline[1])
+        elif sys.platform == "win32":
+            parser = argparse.ArgumentParser(description='Play 2048!') #, prog='start 2048.exe')
+            reslines = [line for line in os.popen("wmic path Win32_VideoController get CurrentVerticalResolution,CurrentHorizontalResolution /format:value").read().split('\n') if line]
+            w = int(reslines[0].split("=")[-1])
+            h = int(reslines[1].split("=")[-1])
+        elif "linux" in sys.platform.lower():
+            parser = argparse.ArgumentParser(description='Play 2048!') #, prog='./2048')
+            resline = os.popen("xdpyinfo | awk '/dimensions/{print $2}'").read().split('x')
+            w = int(resline[0])
+            h = int(resline[1])
+        else:
+            parser = argparse.ArgumentParser(description='Play 2048!')
+            w = 400
+            h = 600
+    except:
         w = 400
         h = 600
     maxw = int(min([w, h*2/3])*11/12)
