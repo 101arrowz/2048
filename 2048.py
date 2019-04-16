@@ -5,6 +5,7 @@ with open(os.devnull, 'w') as f:
     sys.stdout = f
     import pygame
     sys.stdout = oldstdout
+if not os.path.exists(os.path.join("data"))
 # ROUNDED RECTANGLE CODE https://www.pygame.org/project-AAfilledRoundedRect-2349-.html
 
 def AAfilledRoundedRect(surface,color,rect,radius=0.4):
@@ -102,7 +103,7 @@ def updateDisplay(screen, square=False):
     padt = h-padb-boardh
     if square:
         padb += int(size*0.48)
-    font = pygame.font.Font("data/ClearSans-Regular.ttf", size)
+    font = pygame.font.Font(os.path.join(".2048data", "ClearSans-Regular.ttf"), size)
     screen.fill((250,248,239))
     border = 32
     #print((range(padl, w-padr+1, int((w-padr-padl)/3))[-1]-range(padl, w-padr+1, int((w-padr-padl)/3))[0], range(padt, h-padb+1, int((h-padt-padb)/3))[-1]-range(padt, h-padb+1, int((h-padt-padb)/3))[0]))
@@ -117,7 +118,7 @@ def updateDisplay(screen, square=False):
                 screen.blit(font.render(str(objects[yval[0]][xval[0]].value) if objects[yval[0]][xval[0]].value != 0 else "", True, objects[yval[0]][xval[0]].getTextColor()), (xval[1]-int(((len(str(objects[yval[0]][xval[0]].value))-1)/3)*size), yval[1]-int(size/4)))
             else:
                 smallFontSize = int(size*3/len(str(objects[yval[0]][xval[0]].value)))
-                smallFont = pygame.font.Font("data/ClearSans-Regular.ttf", smallFontSize)
+                smallFont = pygame.font.Font(os.path.join(".2048data", "ClearSans-Regular.ttf"), smallFontSize)
                 screen.blit(smallFont.render(str(objects[yval[0]][xval[0]].value) if objects[yval[0]][xval[0]].value != 0 else "", True, objects[yval[0]][xval[0]].getTextColor()), (xval[1]-int(((len(str(objects[yval[0]][xval[0]].value))-1)*(0.273 if square else 0.285))*smallFontSize), yval[1]))
     pygame.display.update()
 def itemSort(item):
@@ -295,7 +296,7 @@ def startGame(FPS=60, text=False, width=400, square=False, load=None):
         for e in pygame.event.get():
             if e.type == pygame.QUIT:
                 playing = False
-                with open("data/.game.2048", 'wb') as f:
+                with open(os.path.join(".2048data", "settings.2048"), 'wb') as f:
                     pickle.dump(objects, f)
             if e.type == pygame.KEYDOWN:
                 cont = doMerges(e.key)
@@ -308,7 +309,7 @@ def startGame(FPS=60, text=False, width=400, square=False, load=None):
                         playing = False
                         printout = False
                         updateDisplay(d, square=square)
-                        GOfont = pygame.font.Font("data/ClearSans-Regular.ttf", int(width/12))
+                        GOfont = pygame.font.Font(os.path.join(".2048data", "ClearSans-Regular.ttf"), int(width/12))
                         d.blit(GOfont.render("Game Over!", True, (119, 110, 101)), (int(width/2)-2.6*int(width/12), int(height-width)-int(width/4)))
                         for frame in range(5*FPS):
                             pygame.display.update()
@@ -317,7 +318,7 @@ def startGame(FPS=60, text=False, width=400, square=False, load=None):
                                 if e.type == pygame.QUIT:
                                     pygame.quit()
                                     sys.exit()
-                        with open("data/.game.2048", 'wb') as f:
+                        with open(os.path.join(".2048data", "game.2048"), 'wb') as f:
                             pickle.dump([], f)
                 else:
                     playing = False
@@ -354,9 +355,14 @@ def addArgs():
         w = 400
         h = 600
     maxw = int(min([w, h*2/3])*11/12)
-    parser.add_argument('-FPS', metavar='60', type=int,
+    try:
+        with open(os.path.join(".2048data", "settings.2048"), 'rb') as f:
+            argsFromFile = pickle.load(f)
+    except:
+        argsFromFile = {'FPS': 60, 'width': int(maxw*2/3), 'text': False, 'square': False, 'newgame': False, 'reset': False, 'store': False}
+    parser.add_argument('-FPS', metavar=""+str(argsFromFile["FPS"])+"", type=int,
                        help='Framerate at which the game runs')
-    parser.add_argument('-width', metavar=int(maxw*2/3), type=int,
+    parser.add_argument('-width', metavar=""+str(argsFromFile["width"])+"", type=int,
                        help='width of window in pixels (height is dependent upon width)')
     parser.add_argument('--text', action='store_true',
                        help='Text mode (will not disable graphics)')
@@ -371,38 +377,31 @@ def addArgs():
     args = vars(parser.parse_args())
     if args["reset"]:
         args["reset"] = False
-        os.system("rm data/.settings.2048")
-    try:
-        with open("data/.settings.2048", 'rb') as f:
-            argsFromFile = pickle.load(f)
-    except:
+        os.system(("del " if sys.platform == "win32" else "rm ")+os.path.join(".2048data", "settings.2048"))
         argsFromFile = {'FPS': 60, 'width': int(maxw*2/3), 'text': False, 'square': False, 'newgame': False, 'reset': False, 'store': False}
-
     if args == {'FPS': None, 'width': None, 'text': False, 'square': False, 'newgame': False, 'reset': False, 'store': False}:
         args = argsFromFile
     if args["FPS"] == None:
         args["FPS"] = argsFromFile["FPS"]
     if args["width"] == None:
         args["width"] = argsFromFile["width"]
-
-
     if args["newgame"]:
-        with open("data/.game.2048", 'wb') as f:
+        with open(os.path.join(".2048data", "game.2048"), 'wb') as f:
             pickle.dump(objects, f)
-    if args["store"]:
-        args["store"] = False
-        with open("data/.settings.2048", 'wb') as f:
-            pickle.dump(args, f)
     if args["width"] > maxw:
         args["width"] = maxw
+    if args["store"]:
+        args["store"] = False
+        with open(os.path.join(".2048data", "settings.2048"), 'wb') as f:
+            pickle.dump(args, f)
     return args
 def loadGame():
     global objects
     try:
-        with open("data/.game.2048", 'rb') as f:
+        with open(os.path.join(".2048data", "game.2048"), 'rb') as f:
             game = pickle.load(f)
     except:
-        with open("data/.game.2048", 'wb') as f:
+        with open(os.path.join(".2048data", "game.2048"), 'wb') as f:
             pickle.dump(objects, f)
         game=objects
     return game
