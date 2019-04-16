@@ -8,9 +8,9 @@ with open(os.devnull, 'w') as f:
 if not os.path.exists(os.path.join(".2048data")):
     os.system("mkdir .2048data")
     if sys.platform == "win32":
-        os.system("powershell.exe (new-object System.Net.WebClient).DownloadFile('https://github.com/101arrowz/2048/raw/extra/ClearSans-Regular.ttf','"+os.path.join('.2048data', 'ClearSans-Regular.ttf')+"')")
+        os.system("powershell.exe (new-object System.Net.WebClient).DownloadFile('https://github.com/101arrowz/2048/raw/master/.2048data/ClearSans-Regular.ttf','"+os.path.join('.2048data', 'ClearSans-Regular.ttf')+"')")
     else:
-        os.system("curl -L -o .2048data/ClearSans-Regular.ttf 'https://github.com/101arrowz/2048/raw/extra/ClearSans-Regular.ttf'")
+        os.system("curl -L -o .2048data/ClearSans-Regular.ttf 'https://github.com/101arrowz/2048/raw/master/.2048data/ClearSans-Regular.ttf'")
     
 # ROUNDED RECTANGLE CODE https://www.pygame.org/project-AAfilledRoundedRect-2349-.html
 
