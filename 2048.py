@@ -5,7 +5,9 @@ with open(os.devnull, 'w') as f:
     sys.stdout = f
     import pygame
     sys.stdout = oldstdout
-if not os.path.exists(os.path.join("data"))
+if not os.path.exists(os.path.join("data")):
+    os.system("mkdir data")
+    
 # ROUNDED RECTANGLE CODE https://www.pygame.org/project-AAfilledRoundedRect-2349-.html
 
 def AAfilledRoundedRect(surface,color,rect,radius=0.4):
