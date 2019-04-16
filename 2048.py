@@ -356,7 +356,7 @@ def addArgs():
     maxw = int(min([w, h*2/3])*11/12)
     parser.add_argument('-FPS', metavar='60', type=int,
                        help='Framerate at which the game runs')
-    parser.add_argument('-width', metavar='400', type=int,
+    parser.add_argument('-width', metavar=int(maxw*2/3), type=int,
                        help='width of window in pixels (height is dependent upon width)')
     parser.add_argument('--text', action='store_true',
                        help='Text mode (will not disable graphics)')
@@ -364,16 +364,21 @@ def addArgs():
                        help='Perfectly square tiles')
     parser.add_argument('--newgame', action='store_true',
                        help='Completely reset board.')
+    parser.add_argument('--reset', action='store_true',
+                       help='Completely reset saved settings.')
     parser.add_argument('--store', action='store_true',
                        help='Save settings - next time you run this game, 2048 will use the settings you just provided.  Be warned - if you use this with --newgame, each time you reopen 2048, your game will reset!')
     args = vars(parser.parse_args())
+    if args["reset"]:
+        args["reset"] = False
+        os.system("rm data/.settings.2048")
     try:
         with open("data/.settings.2048", 'rb') as f:
             argsFromFile = pickle.load(f)
     except:
-        argsFromFile = {'FPS': 60, 'width': int(maxw*2/3), 'text': False, 'square': False, 'newgame': False, 'store': False}
+        argsFromFile = {'FPS': 60, 'width': int(maxw*2/3), 'text': False, 'square': False, 'newgame': False, 'reset': False, 'store': False}
 
-    if args == {'FPS': None, 'width': None, 'text': False, 'square': False, 'newgame': False, 'store': False}:
+    if args == {'FPS': None, 'width': None, 'text': False, 'square': False, 'newgame': False, 'reset': False, 'store': False}:
         args = argsFromFile
     if args["FPS"] == None:
         args["FPS"] = argsFromFile["FPS"]
@@ -384,7 +389,6 @@ def addArgs():
     if args["newgame"]:
         with open("data/.game.2048", 'wb') as f:
             pickle.dump(objects, f)
-
     if args["store"]:
         args["store"] = False
         with open("data/.settings.2048", 'wb') as f:
