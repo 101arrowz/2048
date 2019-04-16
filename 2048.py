@@ -112,14 +112,11 @@ def updateDisplay(screen, square=False):
     font = pygame.font.Font(os.path.join(".2048data", "ClearSans-Regular.ttf"), size)
     screen.fill((250,248,239))
     border = 32
-    #print((range(padl, w-padr+1, int((w-padr-padl)/3))[-1]-range(padl, w-padr+1, int((w-padr-padl)/3))[0], range(padt, h-padb+1, int((h-padt-padb)/3))[-1]-range(padt, h-padb+1, int((h-padt-padb)/3))[0]))
-    #AAfilledRoundedRect(screen, (187, 173, 160), (range(padl, w-padr+1, int((w-padr-padl)/3))[0], range(padt, h-padb+1, int((h-padt-padb)/3))[0], range(padl, w-padr+1, int((w-padr-padl)/3))[-1]-range(padl, w-padr+1, int((w-padr-padl)/3))[0], range(padt, h-padb+1, int((h-padt-padb)/3))[-1]-range(padt, h-padb+1, int((h-padt-padb)/3))[0]))
     for xval in enumerate(range(padl, w-padr+1, int((w-padr-padl)/3))):
         for yval in enumerate(range(padt, h-padb+1, int((h-padt-padb)/3))):
             objects[yval[0]][xval[0]].merged = False
             pygame.draw.rect(screen, (187,173,160), (xval[1]-int((w-padr-padl)/6)+int(size/4), yval[1]-int((h-padt-padb)/6)+int(size/2), int((w-padr-padl)/3), int((h-padt-padb)/3)))
             AAfilledRoundedRect(screen, objects[yval[0]][xval[0]].getColor(), (xval[1]-int((w-padr-padl)/6)+int(size/4)+int(border/4), yval[1]-int((h-padt-padb)/6)+int(size/2)+int(border/4), int((w-padr-padl)/3)-int(border/2), int((h-padt-padb)/3)-int(border/2)), 0.1)
-            #pygame.draw.rect(screen, (187,173,160), (xval[1]-int((w-padr-padl)/6)+int(size/4), yval[1]-int((h-padt-padb)/6)+int(size/2), int((w-padr-padl)/3), int((h-padt-padb)/3)), border)
             if len(str(objects[yval[0]][xval[0]].value)) < 4:
                 screen.blit(font.render(str(objects[yval[0]][xval[0]].value) if objects[yval[0]][xval[0]].value != 0 else "", True, objects[yval[0]][xval[0]].getTextColor()), (xval[1]-int(((len(str(objects[yval[0]][xval[0]].value))-1)/3)*size), yval[1]-int(size/4)))
             else:
@@ -160,7 +157,6 @@ def newTile():
         for tile in row:
             if tile.value == 0:
                 choices.append(tile)
-    #Will fail iff there are no available spaces on the board: random.choice([])
     try:
         if random.random() < 0.4+(len(choices)*0.04):
             random.choice(choices).value = random.choice([2 for x in range(9)]+[4])
@@ -169,7 +165,6 @@ def newTile():
     return True
 def merge(dtile, stile):
     if (dtile.value == stile.value != 0) and (dtile.merged == stile.merged == False):
-        #print(dtile.value, stile.value)
         stile.value = 0
         dtile.value *= 2
         dtile.merged = True
@@ -188,9 +183,6 @@ def doMerges(key):
             merge(row[-2], row[-3])
             row.sort(key=itemSortRev)
             merge(row[-3], row[-4])
-##            row = [tile for tile in row if tile.value != 0]
-##            while len(row) != 4:
-##                row.insert(0, Tile())
             row.sort(key=itemSortRev)
             objectscopy.append(row)
         objects = objectscopy
@@ -203,9 +195,6 @@ def doMerges(key):
             merge(row[1], row[2])
             row.sort(key=itemSort)
             merge(row[2], row[3])
-##            row = [tile for tile in row if tile.value != 0]
-##            while len(row) != 4:
-##                row.append(Tile())
             row.sort(key=itemSort)
             objectscopy.append(row)
         objects = objectscopy
@@ -219,9 +208,6 @@ def doMerges(key):
             merge(row[1], row[2])
             row.sort(key=itemSort)
             merge(row[2], row[3])
-##            row = [tile for tile in row if tile.value != 0]
-##            while len(row) != 4:
-##                row.append(Tile())
             row.sort(key=itemSort)
         objects = [([row[i] for row in rows]) for i in range(4)]
     elif key in [pygame.K_DOWN, "down"]:
@@ -234,9 +220,6 @@ def doMerges(key):
             merge(row[-2], row[-3])
             row.sort(key=itemSortRev)
             merge(row[-3], row[-4])
-##            row = [tile for tile in row if tile.value != 0]
-##            while len(row) != 4:
-##                row.append(Tile())
             row.sort(key=itemSortRev)
         objects = [([row[i] for row in rows]) for i in range(4)]
     else:
