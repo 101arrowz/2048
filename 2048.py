@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 from __future__ import print_function
 import random, sys, os, pickle, time
 sortCount = 0
