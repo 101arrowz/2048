@@ -1,3 +1,4 @@
+from __future__ import print_function
 import random, sys, os, pickle, time
 sortCount = 0
 with open(os.devnull, 'w') as f:
@@ -123,9 +124,9 @@ def updateDisplay(screen, square=False):
             pygame.draw.rect(screen, (187,173,160), (xval[1]-int((w-padr-padl)/6)+int(size/4), yval[1]-int((h-padt-padb)/6)+int(size/2), int((w-padr-padl)/3), int((h-padt-padb)/3)))
             AAfilledRoundedRect(screen, objects[yval[0]][xval[0]].getColor(), (xval[1]-int((w-padr-padl)/6)+int(size/4)+int(border/4), yval[1]-int((h-padt-padb)/6)+int(size/2)+int(border/4), int((w-padr-padl)/3)-int(border/2), int((h-padt-padb)/3)-int(border/2)), 0.1)
             if len(str(objects[yval[0]][xval[0]].value)) < 4:
-                screen.blit(font.render(str(objects[yval[0]][xval[0]].value) if objects[yval[0]][xval[0]].value != 0 else "", True, objects[yval[0]][xval[0]].getTextColor()), (xval[1]-int(((len(str(objects[yval[0]][xval[0]].value))-1)/3)*size), yval[1]-int(size/4)))
+                screen.blit(font.render(str(objects[yval[0]][xval[0]].value) if objects[yval[0]][xval[0]].value != 0 else "", True, objects[yval[0]][xval[0]].getTextColor()), (xval[1]-int(((len(str(objects[yval[0]][xval[0]].value))-1.0)/3.0)*size), yval[1]-int(size/4.0)))
             else:
-                smallFontSize = int(size*3/len(str(objects[yval[0]][xval[0]].value)))
+                smallFontSize = int(size*3.0/len(str(objects[yval[0]][xval[0]].value)))
                 smallFont = pygame.font.Font(os.path.join(".2048data", "ClearSans-Regular.ttf"), smallFontSize)
                 screen.blit(smallFont.render(str(objects[yval[0]][xval[0]].value) if objects[yval[0]][xval[0]].value != 0 else "", True, objects[yval[0]][xval[0]].getTextColor()), (xval[1]-int(((len(str(objects[yval[0]][xval[0]].value))-1)*(0.273 if square else 0.285))*smallFontSize), yval[1]))
     pygame.display.update()
@@ -303,8 +304,8 @@ def startGame(FPS=60, text=False, width=400, square=False, load=None):
                         playing = False
                         printout = False
                         updateDisplay(d, square=square)
-                        GOfont = pygame.font.Font(os.path.join(".2048data", "ClearSans-Regular.ttf"), int(width/12))
-                        d.blit(GOfont.render("Game Over!", True, (119, 110, 101)), (int(width/2)-2.6*int(width/12), int(height-width)-int(width/4)))
+                        GOfont = pygame.font.Font(os.path.join(".2048data", "ClearSans-Regular.ttf"), int(width/12.0))
+                        d.blit(GOfont.render("Game Over!", True, (119, 110, 101)), (int(width/2.0)-2.6*int(width/12.0), int(height-width)-int(width/4.0)))
                         for frame in range(5*FPS):
                             pygame.display.update()
                             clock.tick(FPS)
@@ -349,12 +350,12 @@ def addArgs():
     except:
         w = 400
         h = 600
-    maxw = int(min([w, h*2/3])*11/12)
+    maxw = int(min([w, h*2/3.0])*11/12.0)
     try:
         with open(os.path.join(".2048data", "settings.2048"), 'rb') as f:
             argsFromFile = pickle.load(f)
     except:
-        argsFromFile = {'FPS': 60, 'width': int(maxw*2/3), 'text': False, 'square': False, 'newgame': False, 'reset': False, 'store': False}
+        argsFromFile = {'FPS': 60, 'width': int(maxw*2/3.0), 'text': False, 'square': False, 'newgame': False, 'reset': False, 'store': False}
     parser.add_argument('-FPS', metavar=""+str(argsFromFile["FPS"])+"", type=int,
                        help='Framerate at which the game runs')
     parser.add_argument('-width', metavar=""+str(argsFromFile["width"])+"", type=int,
@@ -373,7 +374,7 @@ def addArgs():
     if args["reset"]:
         args["reset"] = False
         os.system(("del " if sys.platform == "win32" else "rm ")+os.path.join(".2048data", "settings.2048"))
-        argsFromFile = {'FPS': 60, 'width': int(maxw*2/3), 'text': False, 'square': False, 'newgame': False, 'reset': False, 'store': False}
+        argsFromFile = {'FPS': 60, 'width': int(maxw*2/3.0), 'text': False, 'square': False, 'newgame': False, 'reset': False, 'store': False}
     if args == {'FPS': None, 'width': None, 'text': False, 'square': False, 'newgame': False, 'reset': False, 'store': False}:
         args = argsFromFile
     if args["FPS"] == None:
