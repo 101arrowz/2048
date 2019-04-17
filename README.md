@@ -13,4 +13,4 @@ To save the file to your desktop:
 
 On Windows, run the following command in `cmd` (Command Prompt): `powershell.exe (wget https://raw.githubusercontent.com/101arrowz/2048/master/2048.py -OutFile ~\Desktop\2048.py)`
 
-On \*nix/Linux systems (including macOS), run `curl -o ~/Desktop/2048.py 'https://raw.githubusercontent.com/101arrowz/2048/master/2048.py'` in `bash` (Terminal)
+On \*nix/Linux systems (including macOS), run `curl -o ~/Desktop/2048.py 'https://raw.githubusercontent.com/101arrowz/2048/master/2048.py' && chmod 755 ~/Desktop/2048.py` in `bash` (Terminal)
