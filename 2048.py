@@ -3,8 +3,16 @@ from __future__ import print_function
 import random, sys, os, pickle, time
 sortCount = 0
 if int(str(sys.version_info[0])+str(sys.version_info[1])) < 27:
-    print("Please use Python 2.7 or later to run 2048!")
-    sys.exit(1)
+    if os.system("python3 2048.py"):
+        print("Please use Python 2.7 or later to run 2048!")
+        sys.exit(1)
+    else:
+        sys.exit(0)
+if sys.version_info[0] < 3:
+    if os.system("python3 2048.py"):
+        pass
+    else:
+        sys.exit(0)
 with open(os.devnull, 'w') as f:
     oldstdout = sys.stdout
     sys.stdout = f
@@ -18,14 +26,13 @@ with open(os.devnull, 'w') as f:
             print("To use 2048, please run the following command in Terminal:\n")
             print("sudo -H pip2 install pygame\n")
             print("Don't worry if it throws an EnvironmentError.")
-            print("If you want to force 2048 to use Python 3, you can run the command `python3 2048.py`. You should also add a '3' at the end of the first line of this script.")
+            print("If you don't mind the hassle, it is recommended to install Python 3 instead of doing the above. Do `python3 2048.py` once you have.")
             print()
         elif "linux" in sys.platform or sys.platform == "darwin":
             print()
             print("Please install pygame to run 2048 with the command:\n")
             print("pip install pygame\n")
-            print("If you have both Python 2 and 3 installed, run the command `python -V`")
-            print("Make sure to use pip2 or pip3 to install pygame depending on whether that returns Python 2.x or Python 3.x.")
+            print("If you have both Python 2 and 3 installed, this script will default to Python 3, so use pip3 instead of pip.")
             print()
         elif sys.platform == "win32":
             print()
