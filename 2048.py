@@ -16,7 +16,7 @@ if not os.path.exists(os.path.join(".2048data", "ClearSans-Regular.ttf")):
         print("Either GitHub is down (unlikely) or you are not connected to the internet. Connect to the internet next time to download the font. You will not need internet connectivity after that. Exiting...")
         sys.exit()
     else:
-        os.system(("powershell.exe (new-object System.Net.WebClient).DownloadFile('https://github.com/101arrowz/2048/raw/master/.2048data/ClearSans-Regular.ttf','"+os.path.join('.2048data', 'ClearSans-Regular.ttf')+"')" if sys.platform == "win32" else "curl -L -o "+os.path.join(".2048data", "ClearSans-Regular.ttf")+" 'https://github.com/101arrowz/2048/raw/master/.2048data/ClearSans-Regular.ttf'"))
+        os.system(("powershell.exe (new-object System.Net.WebClient).DownloadFile('https://raw.githubusercontent.com/101arrowz/2048/master/.2048data/ClearSans-Regular.ttf','"+os.path.join('.', '.2048data', 'ClearSans-Regular.ttf')+"')" if sys.platform == "win32" else "curl -L -o "+os.path.join(".2048data", "ClearSans-Regular.ttf")+" 'https://raw.githubusercontent.com/101arrowz/2048/master/.2048data/ClearSans-Regular.ttf'"))
         print("Font successfully downloaded!")
 # ROUNDED RECTANGLE CODE https://www.pygame.org/project-AAfilledRoundedRect-2349-.html
 
