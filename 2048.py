@@ -53,11 +53,11 @@ if not os.path.exists(os.path.join(".2048data", "ClearSans-Regular.ttf")):
     if sys.platform == "win32":
         os.system("attrib +h .2048data")
     print("Attempting to download font... Either this is the first run or the game directory was not found.")
-    if os.system("ping "+("-n" if sys.platform == "win32" else "-c")+" 1 github.com > "+os.devnull):
+    if os.system("ping "+("-n" if sys.platform == "win32" else "-c")+" 1 github.com > "+os.devnull+" 2>&1"):
         print("Either GitHub is down (unlikely) or you are not connected to the internet. Connect to the internet next time to download the font. You will not need internet connectivity after that. Exiting...")
         sys.exit()
     else:
-        os.system(("powershell.exe (new-object System.Net.WebClient).DownloadFile('https://raw.githubusercontent.com/101arrowz/2048/master/.2048data/ClearSans-Regular.ttf','"+os.path.join('.', '.2048data', 'ClearSans-Regular.ttf')+"')" if sys.platform == "win32" else "curl -L -o "+os.path.join(".2048data", "ClearSans-Regular.ttf")+" 'https://raw.githubusercontent.com/101arrowz/2048/master/.2048data/ClearSans-Regular.ttf'")+" > "+os.devnull)
+        os.system(("powershell.exe (new-object System.Net.WebClient).DownloadFile('https://raw.githubusercontent.com/101arrowz/2048/master/.2048data/ClearSans-Regular.ttf','"+os.path.join('.', '.2048data', 'ClearSans-Regular.ttf')+"')" if sys.platform == "win32" else "curl -L -o "+os.path.join(".2048data", "ClearSans-Regular.ttf")+" 'https://raw.githubusercontent.com/101arrowz/2048/master/.2048data/ClearSans-Regular.ttf'")+" > "+os.devnull+" 2>&1")
     print("Font successfully downloaded!")
 # ROUNDED RECTANGLE CODE https://www.pygame.org/project-AAfilledRoundedRect-2349-.html
 
