@@ -14,3 +14,6 @@ To save the file to your desktop:
 On Windows, run the following command in `cmd` (Command Prompt): `powershell.exe (wget https://raw.githubusercontent.com/101arrowz/2048/master/2048.py -OutFile ~\Desktop\2048.py)`
 
 On \*nix/Linux systems (including macOS), run `curl -o ~/Desktop/2048.py 'https://raw.githubusercontent.com/101arrowz/2048/master/2048.py' && chmod 755 ~/Desktop/2048.py` in `bash` (Terminal)
+
+# Important Notes When Running as an Executable
+The script, if run with `./2048.py` on \*nix/Linux, will use the default Python interpreter `/usr/bin/env python` at first. If `pygame` is not installed and it is using Python 2, it will automatically try to rerun with Python 3. Therefore, if for some reason you want to force 2048 to use a specific version of Python, change the shebang or install pygame on only one version.
