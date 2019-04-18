@@ -9,7 +9,7 @@ if int(str(sys.version_info[0])+str(sys.version_info[1])) < 27:
     else:
         sys.exit(0)
 if sys.version_info[0] < 3:
-    if os.system("python3 2048.py"):
+    if os.system(" ".join(["python3 2048.py"]+sys.argv[1:])):
         pass
     else:
         sys.exit(0)
