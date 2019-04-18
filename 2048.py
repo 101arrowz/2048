@@ -8,11 +8,6 @@ if int(str(sys.version_info[0])+str(sys.version_info[1])) < 27:
         sys.exit(1)
     else:
         sys.exit(0)
-if sys.version_info[0] < 3:
-    if os.system(" ".join(["python3 2048.py"]+sys.argv[1:])):
-        pass
-    else:
-        sys.exit(0)
 with open(os.devnull, 'w') as f:
     oldstdout = sys.stdout
     sys.stdout = f
@@ -20,6 +15,11 @@ with open(os.devnull, 'w') as f:
         import pygame
     except ImportError:
         sys.stdout = oldstdout
+        if sys.version_info[0] < 3:
+            if os.system(" ".join(["python3 2048.py"]+sys.argv[1:])):
+                pass
+            else:
+                sys.exit(0)
         if sys.platform == "darwin" and sys.version_info[0] < 3:
             print()
             print("You are likely using the python installation that comes bundled with macOS.")
