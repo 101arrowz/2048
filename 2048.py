@@ -472,7 +472,7 @@ def addArgs():
     parser.add_argument('-width', metavar=""+str(argsFromFile["width"])+"", type=int,
                        help='width of window in pixels (height is dependent upon width)')
     parser.add_argument('--easy', action='store_true',
-                       help='New tiles are less likely to spawn when the board is nearly full.')
+                       help='Tiles will spawn less frequently depending on the number of tiles already on the board.')
     parser.add_argument('--text', action='store_true',
                        help='Text mode (will not disable graphics)')
     parser.add_argument('--square', action='store_true',
