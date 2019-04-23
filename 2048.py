@@ -4,7 +4,7 @@ import random, sys, os, pickle, time, math
 sortCount = 0
 frameCount = []
 if int(str(sys.version_info[0])+str(sys.version_info[1])) < 27:
-    if os.system("python3 2048.py"):
+    if os.system("python3 2048.py > "+os.devnull+" 2>&1"):
         print("Please use Python 2.7 or later to run 2048!")
         sys.exit(1)
     else:
@@ -17,7 +17,7 @@ with open(os.devnull, 'w') as f:
     except ImportError:
         sys.stdout = oldstdout
         if sys.version_info[0] < 3:
-            if os.system(" ".join(["python3 2048.py"]+sys.argv[1:])):
+            if os.system(" ".join(["python3 2048.py"]+sys.argv[1:])+" > "+os.devnull+" 2>&1"):
                 pass
             else:
                 sys.exit(0)
@@ -48,7 +48,7 @@ with open(os.devnull, 'w') as f:
     sys.stdout = oldstdout
 if not os.path.exists(os.path.join(".2048data", "ClearSans-Regular.ttf")):
     try:
-        os.system("mkdir .2048data")
+        os.system("mkdir .2048data > "+os.devnull+" 2>&1")
     except:
         pass
     if sys.platform == "win32":
@@ -487,7 +487,7 @@ def addArgs():
     args = vars(parser.parse_args())
     if args["reset"]:
         args["reset"] = False
-        os.system(("del " if sys.platform == "win32" else "rm ")+os.path.join(".2048data", "settings.2048"))
+        os.system(("del " if sys.platform == "win32" else "rm ")+os.path.join(".2048data", "settings.2048")+" > "+os.devnull+" 2>&1")
         argsFromFile = {'FPS': 60, 'width': int(maxw*2/3.0), 'text': False, 'square': False, 'newgame': False, 'reset': False, 'store': False}
     if args == {'FPS': None, 'width': None, 'text': False, 'square': False, 'newgame': False, 'reset': False, 'store': False}:
         args = argsFromFile
