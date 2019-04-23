@@ -47,10 +47,7 @@ with open(os.devnull, 'w') as f:
         sys.exit(1)
     sys.stdout = oldstdout
 if not os.path.exists(os.path.join(".2048data", "ClearSans-Regular.ttf")):
-    try:
-        os.system("mkdir .2048data > "+os.devnull+" 2>&1")
-    except:
-        pass
+    os.system("mkdir .2048data > "+os.devnull+" 2>&1")
     if sys.platform == "win32":
         os.system("attrib +h .2048data")
     print("Attempting to download font... Either this is the first run or the game directory was not found.")
