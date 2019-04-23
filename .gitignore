@@ -1,3 +1,5 @@
 *.2048
 *.SAFE
 2048_DEV/
+dist/
+build/
