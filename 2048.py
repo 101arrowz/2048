@@ -105,7 +105,9 @@ def AAfilledRoundedRect(surface,color,rect,radius=0.4):
 
 class Tile:
     def __init__(self, value=0):
+        self.oldValue = value
         self.value = value
+        self.linkCount = 0
         self.new = 0
         self.merged = False
         self.color = (205,192,180)
@@ -181,6 +183,8 @@ def updateDisplay(screen, square=False, frame=0):
                 tile.setDiff((xval[1], yval[1]))
                 if tile.new:
                     tile.new -= 1
+                if tile.linkCount:
+                    tile.linkCount -= 1
         return
         # TODO: reset as if framecount is empty again
     if frameCount:
@@ -193,6 +197,20 @@ def updateDisplay(screen, square=False, frame=0):
                 tile = objects[yval[0]][xval[0]]
                 tile.merged = False
                 mult = frameCount[-1]
+                if len(frameCount) < 2:
+                    tile.linkCount = 0
+                if tile.linkCount:
+                    tile.value = int(tile.value/2.0)
+                    ltile = tile.link
+                    ltile.diff = (tile.coords[0]-ltile.oldCoords[0], tile.coords[1]-ltile.oldCoords[1])
+                    offset = (int(ltile.diff[0]*mult), int(ltile.diff[1]*mult))
+                    AAfilledRoundedRect(screen, tile.getColor(), (xval[1]-int((w-padr-padl)/6)+int(size/4)+int(border/4)-offset[0], yval[1]-int((h-padt-padb)/6)+int(size/2)+int(border/4)-offset[1], int((w-padr-padl)/3)-int(border/2), int((h-padt-padb)/3)-int(border/2)), 0.1)
+                    if len(str(tile.value)) < 4:
+                        screen.blit(font.render(str(tile.value) if tile.value != 0 else "", True, tile.getTextColor()), (xval[1]-int(((len(str(tile.value))-1.0)/3.0)*size)-offset[0], yval[1]-int(size/4.0)-offset[1]))
+                    else:
+                        smallFontSize = int(size*3.0/len(str(tile.value)))
+                        smallFont = pygame.font.Font(os.path.join(".2048data", "ClearSans-Regular.ttf"), smallFontSize)
+                        screen.blit(smallFont.render(str(tile.value) if tile.value != 0 else "", True, tile.getTextColor()), (xval[1]-int(((len(str(tile.value))-1)*(0.273 if square else 0.285))*smallFontSize)-offset[0], yval[1]-offset[1]))
                 if tile.new:
                     color = tile.getColor()
                     textColor = tile.getTextColor()
@@ -212,6 +230,8 @@ def updateDisplay(screen, square=False, frame=0):
                     smallFontSize = int(size*3.0/len(str(tile.value)))
                     smallFont = pygame.font.Font(os.path.join(".2048data", "ClearSans-Regular.ttf"), smallFontSize)
                     screen.blit(smallFont.render(str(tile.value) if tile.value != 0 else "", True, tile.getTextColor()), (xval[1]-int(((len(str(tile.value))-1)*(0.273 if square else 0.285))*smallFontSize)-offset[0], yval[1]-offset[1]))
+                if tile.linkCount:
+                    tile.value = int(tile.value*2.0)
         pygame.display.update()
         frameCount.pop(-1)
 def itemSort(item):
@@ -258,8 +278,13 @@ def newTile():
 def merge(dtile, stile):
     if (dtile.value == stile.value != 0) and (dtile.merged == stile.merged == False):
         dtile.merged = Tile(value=stile.value)
+        stile.oldValue = stile.value
         stile.value = 0
+        dtile.oldValue = dtile.value
         dtile.value *= 2
+        dtile.link = stile
+        dtile.linkCount = 2
+        stile.oldCoords = stile.coords
     if (stile.value != dtile.value == 0):
         dtile.value = stile.value
         stile.value = 0
