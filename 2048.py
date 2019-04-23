@@ -258,14 +258,14 @@ def itemSortRev(item):
         return sortCount - 4
     else:
         return sortCount
-def newTile():
+def newTile(easy=False):
     choices = []
     for row in objects:
         for tile in row:
             if tile.value == 0:
                 choices.append(tile)
     try:
-        if random.random() < 0.4+(len(choices)*0.04):
+        if random.random() < (0.4+(len(choices)*0.04) if easy else 1):
             tile = random.choice(choices)
             tile.value = random.choice([2 for x in range(9)]+[4])
             tile.new = 2
@@ -285,7 +285,7 @@ def merge(dtile, stile):
     if (stile.value != dtile.value == 0):
         dtile.value = stile.value
         stile.value = 0
-def doMerges(key):
+def doMerges(key, easy=False):
     global objects
     objectsoriginal = [[Tile(value=tile.value) for tile in row] for row in objects]
     if key in [pygame.K_RIGHT, pygame.K_d, "right"]:
@@ -339,7 +339,7 @@ def doMerges(key):
     else:
         return "nokey"
     if [[tile.value for tile in row] for row in objects] != [[tile.value for tile in row] for row in objectsoriginal]:
-        if newTile():
+        if newTile(easy=easy):
             return True
         else:
             return False
@@ -379,7 +379,7 @@ objects = [[Tile() for i1 in range(4)] for i2 in range(4)]
 random.choice(random.choice(objects)).value = 2
 
 
-def startGame(FPS=60, text=False, width=400, square=False, load=None):
+def startGame(FPS=60, text=False, easy=False, width=400, square=False, load=None):
     global objects
     if load:
         objects = load
@@ -402,7 +402,7 @@ def startGame(FPS=60, text=False, width=400, square=False, load=None):
                 with open(os.path.join(".2048data", "game.2048"), 'wb') as f:
                     pickle.dump(objects, f)
             if e.type == pygame.KEYDOWN:
-                cont = doMerges(e.key)
+                cont = doMerges(e.key, easy=easy)
                 if cont:
                     if cont in ["nokey", "illegal"]:
                         printout = False
@@ -432,7 +432,7 @@ def startGame(FPS=60, text=False, width=400, square=False, load=None):
             if text:
                 os.system("cls" if sys.platform == "win32" else "clear")
                 print(returnFormattedObjects(reset=True, spacing=2))
-            updateDisplay(d, square=square, frame=int(FPS/6))
+            updateDisplay(d, square=square, frame=int(FPS/8))
         updateDisplay(d, square=square)
     pygame.quit()
 def addArgs():
@@ -466,11 +466,13 @@ def addArgs():
         with open(os.path.join(".2048data", "settings.2048"), 'rb') as f:
             argsFromFile = pickle.load(f)
     except:
-        argsFromFile = {'FPS': 60, 'width': int(maxw*2/3.0), 'text': False, 'square': False, 'newgame': False, 'reset': False, 'store': False}
+        argsFromFile = {'FPS': 60, 'width': int(maxw*2/3.0), 'easy': False, 'text': False, 'square': False, 'newgame': False, 'reset': False, 'store': False}
     parser.add_argument('-FPS', metavar=""+str(argsFromFile["FPS"])+"", type=int,
                        help='Framerate at which the game runs')
     parser.add_argument('-width', metavar=""+str(argsFromFile["width"])+"", type=int,
                        help='width of window in pixels (height is dependent upon width)')
+    parser.add_argument('--easy', action='store_true',
+                       help='New tiles are less likely to spawn when the board is nearly full.')
     parser.add_argument('--text', action='store_true',
                        help='Text mode (will not disable graphics)')
     parser.add_argument('--square', action='store_true',
@@ -485,8 +487,8 @@ def addArgs():
     if args["reset"]:
         args["reset"] = False
         os.system(("del " if sys.platform == "win32" else "rm ")+os.path.join(".2048data", "settings.2048")+" > "+os.devnull+" 2>&1")
-        argsFromFile = {'FPS': 60, 'width': int(maxw*2/3.0), 'text': False, 'square': False, 'newgame': False, 'reset': False, 'store': False}
-    if args == {'FPS': None, 'width': None, 'text': False, 'square': False, 'newgame': False, 'reset': False, 'store': False}:
+        argsFromFile = {'FPS': 60, 'width': int(maxw*2/3.0), 'easy': False, 'text': False, 'square': False, 'newgame': False, 'reset': False, 'store': False}
+    if args == {'FPS': None, 'width': None, 'easy': False, 'text': False, 'square': False, 'newgame': False, 'reset': False, 'store': False}:
         args = argsFromFile
     if args["FPS"] == None:
         args["FPS"] = argsFromFile["FPS"]
@@ -515,4 +517,4 @@ def loadGame():
 if __name__ == "__main__":
     args = addArgs()
     game = loadGame()
-    startGame(FPS=args["FPS"], text=args["text"], width=args["width"], square=args["square"], load=game)
+    startGame(FPS=args["FPS"], text=args["text"], easy=args["easy"], width=args["width"], square=args["square"], load=game)
