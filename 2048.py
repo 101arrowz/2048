@@ -274,7 +274,7 @@ def newTile(easy=False):
     return True
 def merge(dtile, stile):
     if (dtile.value == stile.value != 0) and (dtile.merged == stile.merged == False):
-        dtile.merged = Tile(value=stile.value)
+        dtile.merged = True
         stile.oldValue = stile.value
         stile.value = 0
         dtile.oldValue = dtile.value
@@ -503,6 +503,10 @@ def addArgs():
         args["store"] = False
         with open(os.path.join(".2048data", "settings.2048"), 'wb') as f:
             pickle.dump(args, f)
+    args["load"] = loadGame()
+    del args["newgame"]
+    del args["store"]
+    del args["reset"]
     return args
 def loadGame():
     global objects
@@ -515,6 +519,4 @@ def loadGame():
         game=objects
     return game
 if __name__ == "__main__":
-    args = addArgs()
-    game = loadGame()
-    startGame(FPS=args["FPS"], text=args["text"], easy=args["easy"], width=args["width"], square=args["square"], load=game)
+    startGame(**addArgs())
