@@ -50,6 +50,8 @@ with open(os.devnull, 'w') as f:
         sys.exit(1)
     sys.stdout = oldstdout
 if not os.path.exists(os.path.join(".2048data", "ClearSans-Regular.ttf")):
+    oldwd = os.getcwd()
+    os.chdir(os.path.abspath(os.path.dirname(__file__)))
     os.system("mkdir .2048data > "+os.devnull+" 2>&1")
     if sys.platform == "win32":
         os.system("attrib +h .2048data")
@@ -60,6 +62,7 @@ if not os.path.exists(os.path.join(".2048data", "ClearSans-Regular.ttf")):
     else:
         os.system(("powershell.exe (new-object System.Net.WebClient).DownloadFile('https://raw.githubusercontent.com/101arrowz/2048/master/.2048data/ClearSans-Regular.ttf','"+os.path.join('.', '.2048data', 'ClearSans-Regular.ttf')+"')" if sys.platform == "win32" else "curl -L -o "+os.path.join(".2048data", "ClearSans-Regular.ttf")+" 'https://raw.githubusercontent.com/101arrowz/2048/master/.2048data/ClearSans-Regular.ttf'")+" > "+os.devnull+" 2>&1")
     print("Font successfully downloaded!")
+    os.chdir(oldwd)
 # ROUNDED RECTANGLE CODE https://www.pygame.org/project-AAfilledRoundedRect-2349-.html
 
 def AAfilledRoundedRect(surface,color,rect,radius=0.4):
@@ -114,7 +117,7 @@ class Tile:
         self.color = (205,192,180)
         self.textColor = (119, 110, 101)
     def getColor(self):
-        if self.value % 3 or self.value > 2048:
+        if self.value in Tile.colors or self.value > 2048:
             self.color = Tile.colors[self.value] if self.value in Tile.colors else (60, 58, 50)
         else:
             for p in range(12):
@@ -468,13 +471,42 @@ def addArgs():
         with open(os.path.join(".2048data", "settings.2048"), 'rb') as f:
             argsFromFile = pickle.load(f)
     except:
-        argsFromFile = {'FPS': 60, 'width': int(maxw*2/3.0), 'difficulty': 2, 'text': False, 'square': False, 'newgame': False, 'reset': False, 'store': False}
-    parser.add_argument('-FPS', '-f', metavar=""+str(argsFromFile["FPS"])+"", type=int,
-                       help='Framerate at which the game runs')
-    parser.add_argument('-width', '-w', metavar=""+str(argsFromFile["width"])+"", type=int,
-                       help='width of window in pixels (height is dependent upon width)')
-    parser.add_argument('-difficulty', '-d', metavar=2, type=int, choices=(1,2,3),
-                       help='Difficulty level. At level 1, tiles will spawn less frequently depending on the number of tiles already on the board. At level 2, normal 2048. At level 3, tiles with values that are multiples of 3 can spawn as well.')
+        argsFromFile = {'FPS': 60, 'width': int(maxw*2/3.0), 'difficulty': 2, 'load': None, 'text': False, 'square': False, 'newgame': False, 'reset': False, 'store': False}
+    def openableFile(s):
+        if not os.path.isfile(s):
+            raise argparse.ArgumentTypeError("invalid filepath")
+        if not os.access(s, os.R_OK):
+            raise argparse.ArgumentTypeError("cannot read from file. Do you have sufficient permissions?")
+        try:
+            with open(s) as f:
+                if s[-5:] == '.2048':
+                    return pickle.load(f)
+                else:
+                    retobj = []
+                    lines = f.readlines()[:4]
+                    if len(lines) != 4:
+                        raise argparse.ArgumentTypeError("invalid formatting of text file (less than four lines)")
+                    for line in lines:
+                        if len(line.split(" ")) != 4:
+                            raise argparse.ArgumentTypeError("invalid formatting of text file (wrong number of tiles or spaces)")
+                        try:
+                            retobj.append([Tile(value=int(val)) for val in line.split(" ")])
+                        except ValueError:
+                            raise argparse.ArgumentTypeError("invalid formatting of text file (not all tiles are numbers or there are extraneous spaces)")
+                    return [retobj, 0]
+        except Exception as e:
+            if isinstance(e, argparse.ArgumentTypeError):
+                raise e
+            else:
+                raise argparse.ArgumentTypeError("there was a problem opening the file. See the error below:\n\n{0}\n\nIf you cannot fix this error, contact the developers on GitHub.".format(str(e).split('\n')[-1]))               
+    parser.add_argument('-FPS', '-f', metavar="FRAMERATE", type=int,
+                       help='Framerate at which the game runs. Default is '+str(argsFromFile["FPS"])+'.')
+    parser.add_argument('-width', '-w', metavar="PIXELS", type=int,
+                       help='width of window in pixels (height is dependent upon width). Default is '+str(argsFromFile["width"])+'.')
+    parser.add_argument('-difficulty', '-d', metavar="LEVEL", type=int, choices=(1,2,3),
+                       help='Difficulty level. Default is '+str(argsFromFile["difficulty"])+'. At level 1, tiles will spawn less frequently depending on the number of tiles already on the board. At level 2, normal 2048. At level 3, tiles with values that are multiples of 3 can spawn as well.')
+    parser.add_argument('--load', metavar='FILE', type=openableFile, 
+                       help='Load a game. Must be either a .2048 gamefile found in the ".2048data" directory or a text file with four lines, each containing four values separated by spaces. For empty spaces, write 0. WARNING: THIS WILL OVERWRITE YOUR SAVED GAME! It is stored in "'+os.path.join(os.getcwd(), '.2048data', 'game.2048')+'", so copy it out of there if you want to keep your save!')
     parser.add_argument('--text', action='store_true',
                        help='Text mode (will not disable graphics)')
     parser.add_argument('--square', action='store_true',
@@ -490,7 +522,7 @@ def addArgs():
         args["reset"] = False
         os.system(("del " if sys.platform == "win32" else "rm ")+os.path.join(".2048data", "settings.2048")+" > "+os.devnull+" 2>&1")
         argsFromFile = {'FPS': 60, 'width': int(maxw*2/3.0), 'difficulty': 2, 'text': False, 'square': False, 'newgame': False, 'reset': False, 'store': False}
-    if args == {'FPS': None, 'width': None, 'difficulty': None, 'text': False, 'square': False, 'newgame': False, 'reset': False, 'store': False}:
+    if args == {'FPS': None, 'width': None, 'difficulty': None, 'load': None, 'text': False, 'square': False, 'newgame': False, 'reset': False, 'store': False}:
         args = argsFromFile
     if args["FPS"] == None:
         args["FPS"] = argsFromFile["FPS"]
@@ -503,11 +535,20 @@ def addArgs():
             pickle.dump(objects, f)
     if args["width"] > maxw:
         args["width"] = maxw
+    if args["load"]:
+        load = args["load"][0]
+        score = args["load"][1]
+    else:
+        load = None
+    del args["load"]
     if args["store"]:
         args["store"] = False
         with open(os.path.join(".2048data", "settings.2048"), 'wb') as f:
             pickle.dump(args, f)
-    args["load"] = loadGame()
+    if load == None:
+        args["load"] = loadGame()
+    else:
+        args["load"] = load
     del args["newgame"]
     del args["store"]
     del args["reset"]
