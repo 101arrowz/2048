@@ -1,7 +1,10 @@
 # 2048
 2048 in Python
 
-Self-contained, cross-platform, works in both Python 2.7 and 3.x. Has a plethora of command-line options.
+Self-contained, cross-platform, works in both Python 2.7 and 3.x. Fully modular. Smooth transitions. Color and font stays true to [the original game](https://github.com/gabrielecirulli/2048). Has a plethora of command-line options, including:
+* Custom window size and framerate that comfortably fits _your_ monitor by default
+* 3 levels of difficulty
+* 
 
 # Pre-requisites
 Python and the package `pygame` must be installed.
