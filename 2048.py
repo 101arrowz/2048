@@ -399,8 +399,14 @@ def startGame(FPS=60, text=False, difficulty=2, width=400, square=False, load=No
                 playing = False
                 with open(os.path.join(".2048data", "game.2048"), 'wb') as f:
                     pickle.dump([objects, score], f)
-            if e.type == pygame.KEYDOWN:
-                cont = doMerges(e.key, difficulty=difficulty)
+                break
+            elif e.type == pygame.KEYDOWN:
+                if e.key in [pygame.K_w, pygame.K_q] and (pygame.key.get_mods() & (pygame.KMOD_META if sys.platform == "darwin" else pygame.KMOD_CTRL)):
+                    playing = False
+                    with open(os.path.join(".2048data", "game.2048"), 'wb') as f:
+                        pickle.dump([objects, score], f)
+                    break
+                cont = doMerges(e.key, difficulty= difficulty)
                 if cont:
                     if cont in ["nokey", "illegal"]:
                         printout = False
@@ -426,6 +432,7 @@ def startGame(FPS=60, text=False, difficulty=2, width=400, square=False, load=No
                 else:
                     playing = False
                     printout = False
+                    break
         if printout:
             if text:
                 os.system("cls" if sys.platform == "win32" else "clear")
