@@ -104,6 +104,7 @@ def AAfilledRoundedRect(surface,color,rect,radius=0.4):
 # END ROUNDED RECTANGLE CODE
 
 class Tile:
+    colors = {0:(205,192,180),2:(238,228,218),4:(237,224,200),8:(242, 177, 121),16:(245, 149, 99),32:(246, 124, 95),64:(246, 94, 59),128:(237, 207, 114),256:(237, 204, 97),512:(237, 200, 80),1024:(237, 197, 63),2048:(237, 194, 46)}
     def __init__(self, value=0):
         self.oldValue = value
         self.value = value
@@ -113,35 +114,16 @@ class Tile:
         self.color = (205,192,180)
         self.textColor = (119, 110, 101)
     def getColor(self):
-        if self.value == 0:
-            self.color = (205,192,180)
-        elif self.value == 2:
-            self.color = (238,228,218)
-        elif self.value == 4:
-            self.color = (237,224,200)
-        elif self.value == 8:
-            self.color = (242, 177, 121)
-        elif self.value == 16:
-            self.color = (245, 149, 99)
-        elif self.value == 32:
-            self.color = (246, 124, 95)
-        elif self.value == 64:
-            self.color = (246, 94, 59)
-        elif self.value == 128:
-            self.color = (237, 207, 114)
-        elif self.value == 256:
-            self.color = (237, 204, 97)
-        elif self.value == 512:
-            self.color = (237, 200, 80)
-        elif self.value == 1024:
-            self.color = (237, 197, 63)
-        elif self.value == 2048:
-            self.color = (237, 194, 46)
+        if self.value % 3 or self.value > 2048:
+            self.color = Tile.colors[self.value] if self.value in Tile.colors else (60, 58, 50)
         else:
-            self.color = (60, 58, 50)
+            for p in range(12):
+                if 2**p < self.value < 2**(p+1):
+                    break
+            self.color = tuple(int(((self.value-2**p)*Tile.colors[2**p][n]+(2**(p+1)-self.value)*Tile.colors[2**(p+1)][n])/float(2**p)) for n in range(3))
         return self.color
     def getTextColor(self):
-        if self.value in [0, 2, 4]:
+        if self.value in [0, 2, 3, 4, 6]:
             self.textColor = (119, 110, 101)
         else:
             self.textColor = (249, 246, 242)
@@ -268,16 +250,16 @@ def itemSortRev(item):
         return sortCount - 4
     else:
         return sortCount
-def newTile(easy=False):
+def newTile(difficulty=2):
     choices = []
     for row in objects:
         for tile in row:
             if tile.value == 0:
                 choices.append(tile)
     try:
-        if random.random() < (0.4+(len(choices)*0.04) if easy else 1):
+        if random.random() < (0.4+(len(choices)*0.04) if difficulty == 1 else 1):
             tile = random.choice(choices)
-            tile.value = random.choice([2 for x in range(9)]+[4])
+            tile.value = random.choice(9*[2]+[4]+(9*[3]+[6] if difficulty == 3 else []))
             tile.new = 2
     except:
         return False
@@ -300,7 +282,7 @@ def merge(dtile, stile):
     if (stile.value != dtile.value == 0):
         dtile.value = stile.value
         stile.value = 0
-def doMerges(key, easy=False):
+def doMerges(key, difficulty=2):
     global objects
     objectsoriginal = [[Tile(value=tile.value) for tile in row] for row in objects]
     if key in [pygame.K_RIGHT, pygame.K_d, "right"]:
@@ -354,7 +336,7 @@ def doMerges(key, easy=False):
     else:
         return "nokey"
     if [[tile.value for tile in row] for row in objects] != [[tile.value for tile in row] for row in objectsoriginal]:
-        if newTile(easy=easy):
+        if newTile(difficulty=difficulty):
             return True
         else:
             return False
@@ -393,7 +375,9 @@ def checkGO():
 objects = [[Tile() for i1 in range(4)] for i2 in range(4)]
 random.choice(random.choice(objects)).value = 2
 
-def startGame(FPS=60, text=False, easy=False, width=400, square=False, load=None):
+
+
+def startGame(FPS=60, text=False, difficulty=2, width=400, square=False, load=None):
     global objects, score
     if load:
         objects = load
@@ -416,7 +400,7 @@ def startGame(FPS=60, text=False, easy=False, width=400, square=False, load=None
                 with open(os.path.join(".2048data", "game.2048"), 'wb') as f:
                     pickle.dump([objects, score], f)
             if e.type == pygame.KEYDOWN:
-                cont = doMerges(e.key, easy=easy)
+                cont = doMerges(e.key, difficulty=difficulty)
                 if cont:
                     if cont in ["nokey", "illegal"]:
                         printout = False
@@ -425,8 +409,8 @@ def startGame(FPS=60, text=False, easy=False, width=400, square=False, load=None
                     if checkGO():
                         playing = False
                         printout = False
-                        updateDisplay(d, square=square, frame=int(FPS/6))
-                        for frame in range(int(FPS/6)):
+                        updateDisplay(d, square=square, frame=int(FPS/8.0))
+                        for frame in range(int(FPS/8.0)):
                             updateDisplay(d, square=square)
                         GOfont = pygame.font.Font(os.path.join(".2048data", "ClearSans-Regular.ttf"), int(width/12.0))
                         d.blit(GOfont.render("Game Over!", True, (119, 110, 101)), (int(width/2.0)-2.6*int(width/12.0), int(height-width)-int(width/3.0)))
@@ -446,7 +430,7 @@ def startGame(FPS=60, text=False, easy=False, width=400, square=False, load=None
             if text:
                 os.system("cls" if sys.platform == "win32" else "clear")
                 print(returnFormattedObjects(reset=True, spacing=2))
-            updateDisplay(d, square=square, frame=int(FPS/8))
+            updateDisplay(d, square=square, frame=int(FPS/8.0))
         updateDisplay(d, square=square)
     pygame.quit()
 def addArgs():
@@ -454,39 +438,36 @@ def addArgs():
     global objects
     try:
         if sys.platform == "darwin":
-            parser = argparse.ArgumentParser(description='Play 2048!') #, prog='open 2048.app')
             resline = os.popen("system_profiler SPDisplaysDataType | grep Resolution | awk '/Resolution/{print $2, $3, $4}'").read().split("x")
             w = int(resline[0])
             h = int(resline[1])
         elif sys.platform == "win32":
-            parser = argparse.ArgumentParser(description='Play 2048!') #, prog='start 2048.exe')
             reslines = [line for line in os.popen("wmic path Win32_VideoController get CurrentVerticalResolution,CurrentHorizontalResolution /format:value").read().split('\n') if line]
             w = int(reslines[0].split("=")[-1])
             h = int(reslines[1].split("=")[-1])
         elif "linux" in sys.platform.lower():
-            parser = argparse.ArgumentParser(description='Play 2048!') #, prog='./2048')
             resline = os.popen("xdpyinfo | awk '/dimensions/{print $2}'").read().split('x')
             w = int(resline[0])
             h = int(resline[1])
         else:
-            parser = argparse.ArgumentParser(description='Play 2048!')
             w = 400
             h = 600
     except:
         w = 400
         h = 600
+    parser = argparse.ArgumentParser(description='Play 2048!')
     maxw = int(min([w, h*2/3.0])*11/12.0)
     try:
         with open(os.path.join(".2048data", "settings.2048"), 'rb') as f:
             argsFromFile = pickle.load(f)
     except:
-        argsFromFile = {'FPS': 60, 'width': int(maxw*2/3.0), 'easy': False, 'text': False, 'square': False, 'newgame': False, 'reset': False, 'store': False}
-    parser.add_argument('-FPS', metavar=""+str(argsFromFile["FPS"])+"", type=int,
+        argsFromFile = {'FPS': 60, 'width': int(maxw*2/3.0), 'difficulty': 2, 'text': False, 'square': False, 'newgame': False, 'reset': False, 'store': False}
+    parser.add_argument('-FPS', '-f', metavar=""+str(argsFromFile["FPS"])+"", type=int,
                        help='Framerate at which the game runs')
-    parser.add_argument('-width', metavar=""+str(argsFromFile["width"])+"", type=int,
+    parser.add_argument('-width', '-w', metavar=""+str(argsFromFile["width"])+"", type=int,
                        help='width of window in pixels (height is dependent upon width)')
-    parser.add_argument('--easy', action='store_true',
-                       help='Tiles will spawn less frequently depending on the number of tiles already on the board.')
+    parser.add_argument('-difficulty', '-d', metavar=2, type=int, choices=(1,2,3),
+                       help='Difficulty level. At level 1, tiles will spawn less frequently depending on the number of tiles already on the board. At level 2, normal 2048. At level 3, tiles with values that are multiples of 3 can spawn as well.')
     parser.add_argument('--text', action='store_true',
                        help='Text mode (will not disable graphics)')
     parser.add_argument('--square', action='store_true',
@@ -501,13 +482,15 @@ def addArgs():
     if args["reset"]:
         args["reset"] = False
         os.system(("del " if sys.platform == "win32" else "rm ")+os.path.join(".2048data", "settings.2048")+" > "+os.devnull+" 2>&1")
-        argsFromFile = {'FPS': 60, 'width': int(maxw*2/3.0), 'easy': False, 'text': False, 'square': False, 'newgame': False, 'reset': False, 'store': False}
-    if args == {'FPS': None, 'width': None, 'easy': False, 'text': False, 'square': False, 'newgame': False, 'reset': False, 'store': False}:
+        argsFromFile = {'FPS': 60, 'width': int(maxw*2/3.0), 'difficulty': 2, 'text': False, 'square': False, 'newgame': False, 'reset': False, 'store': False}
+    if args == {'FPS': None, 'width': None, 'difficulty': None, 'text': False, 'square': False, 'newgame': False, 'reset': False, 'store': False}:
         args = argsFromFile
     if args["FPS"] == None:
         args["FPS"] = argsFromFile["FPS"]
     if args["width"] == None:
         args["width"] = argsFromFile["width"]
+    if args["difficulty"] == None:
+        args["difficulty"] = argsFromFile["difficulty"]
     if args["newgame"]:
         with open(os.path.join(".2048data", "game.2048"), 'wb') as f:
             pickle.dump(objects, f)
