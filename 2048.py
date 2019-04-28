@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 from __future__ import print_function
-import random, sys, os, pickle, time, math
+from collections import namedtuple
+import random, sys, os, json, time, math
 sortCount = 0
 score = 0
 oldScore = 0
@@ -378,8 +379,6 @@ def checkGO():
 objects = [[Tile() for i1 in range(4)] for i2 in range(4)]
 random.choice(random.choice(objects)).value = 2
 
-
-
 def startGame(FPS=60, text=False, difficulty=2, width=400, square=False, load=None):
     global objects, score
     if load:
@@ -400,14 +399,14 @@ def startGame(FPS=60, text=False, difficulty=2, width=400, square=False, load=No
         for e in pygame.event.get():
             if e.type == pygame.QUIT:
                 playing = False
-                with open(os.path.join(".2048data", "game.2048"), 'wb') as f:
-                    pickle.dump([objects, score], f)
+                with open(os.path.join(".2048data", "game.2048"), 'w') as f:
+                    f.write(json.dumps([[[tile.value for tile in row] for row in objects], score], indent=4))
                 break
             elif e.type == pygame.KEYDOWN:
                 if e.key in [pygame.K_w, pygame.K_q] and (pygame.key.get_mods() & (pygame.KMOD_META if sys.platform == "darwin" else pygame.KMOD_CTRL)):
                     playing = False
-                    with open(os.path.join(".2048data", "game.2048"), 'wb') as f:
-                        pickle.dump([objects, score], f)
+                    with open(os.path.join(".2048data", "game.2048"), 'w') as f:
+                        f.write(json.dumps([[[tile.value for tile in row] for row in objects], score], indent=4))
                     break
                 cont = doMerges(e.key, difficulty= difficulty)
                 if cont:
@@ -424,7 +423,7 @@ def startGame(FPS=60, text=False, difficulty=2, width=400, square=False, load=No
                         GOfont = pygame.font.Font(os.path.join(".2048data", "ClearSans-Regular.ttf"), int(width/12.0))
                         d.blit(GOfont.render("Game Over!", True, (119, 110, 101)), (int(width/2.0)-2.6*int(width/12.0), int(height-width)-int(width/3.0)))
                         with open(os.path.join(".2048data", "game.2048"), 'wb') as f:
-                            pickle.dump([], f)
+                            f.write(json.dumps([]))
                         for frame in range(5*FPS):
                             pygame.display.update()
                             clock.tick(FPS)
@@ -432,6 +431,10 @@ def startGame(FPS=60, text=False, difficulty=2, width=400, square=False, load=No
                                 if e.type == pygame.QUIT:
                                     pygame.quit()
                                     sys.exit()
+                                elif e.type ==  pygame.KEYDOWN:
+                                    if e.key in [pygame.K_w, pygame.K_q] and (pygame.key.get_mods() & (pygame.KMOD_META if sys.platform == "darwin" else pygame.KMOD_CTRL)):
+                                        pygame.quit()
+                                        sys.exit()
                 else:
                     playing = False
                     printout = False
@@ -445,7 +448,7 @@ def startGame(FPS=60, text=False, difficulty=2, width=400, square=False, load=No
     pygame.quit()
 def addArgs():
     import argparse
-    global objects
+    global objects, score
     try:
         if sys.platform == "darwin":
             resline = os.popen("system_profiler SPDisplaysDataType | grep Resolution | awk '/Resolution/{print $2, $3, $4}'").read().split("x")
@@ -469,7 +472,7 @@ def addArgs():
     maxw = int(min([w, h*2/3.0])*11/12.0)
     try:
         with open(os.path.join(".2048data", "settings.2048"), 'rb') as f:
-            argsFromFile = pickle.load(f)
+            argsFromFile = json.loads(f.read())
     except:
         argsFromFile = {'FPS': 60, 'width': int(maxw*2/3.0), 'difficulty': 2, 'load': None, 'text': False, 'square': False, 'newgame': False, 'reset': False, 'store': False}
     def openableFile(s):
@@ -480,7 +483,10 @@ def addArgs():
         try:
             with open(s) as f:
                 if s[-5:] == '.2048':
-                    return pickle.load(f)
+                    load = json.loads(f.read())
+                    retobj = [[Tile(value=val) for val in row] for row in load[0]]
+                    score = load[1]
+                    return [retobj, score]
                 else:
                     retobj = []
                     lines = f.readlines()[:4]
@@ -493,7 +499,7 @@ def addArgs():
                             retobj.append([Tile(value=int(val)) for val in line.split(" ")])
                         except ValueError:
                             raise argparse.ArgumentTypeError("invalid formatting of text file (not all tiles are numbers or there are extraneous spaces)")
-                    return [retobj, 0]
+                return [retobj, 0]
         except Exception as e:
             if isinstance(e, argparse.ArgumentTypeError):
                 raise e
@@ -531,20 +537,23 @@ def addArgs():
     if args["difficulty"] == None:
         args["difficulty"] = argsFromFile["difficulty"]
     if args["newgame"]:
-        with open(os.path.join(".2048data", "game.2048"), 'wb') as f:
-            pickle.dump(objects, f)
+        with open(os.path.join(".2048data", "game.2048"), 'w') as f:
+            f.write(json.dumps([[[tile.value for tile in row] for row in objects], score], indent=4))
     if args["width"] > maxw:
         args["width"] = maxw
-    if args["load"]:
-        load = args["load"][0]
-        score = args["load"][1]
-    else:
+    try:
+        if args["load"]:
+            load = args["load"][0]
+            score = args["load"][1]
+        else:
+            load = None
+    except KeyError:
         load = None
-    del args["load"]
+    args["load"] = None
     if args["store"]:
         args["store"] = False
-        with open(os.path.join(".2048data", "settings.2048"), 'wb') as f:
-            pickle.dump(args, f)
+        with open(os.path.join(".2048data", "settings.2048"), 'w') as f:
+            f.write(json.dumps(args, indent=4, sort_keys=True))
     if load == None:
         args["load"] = loadGame()
     else:
@@ -556,13 +565,13 @@ def addArgs():
 def loadGame():
     global score
     try:
-        with open(os.path.join(".2048data", "game.2048"), 'rb') as f:
-            game, score = pickle.load(f)
+        with open(os.path.join(".2048data", "game.2048"), 'r') as f:
+            load = json.loads(f.read())
+            game = [[Tile(value=val) for val in row] for row in load[0]]
+            score = load[1]
     except:
         global objects
         game=objects
-        with open(os.path.join(".2048data", "game.2048"), 'wb') as f:
-            pickle.dump([game, score], f)
     return game
 if __name__ == "__main__":
     startGame(**addArgs())
