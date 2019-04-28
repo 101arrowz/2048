@@ -2,6 +2,9 @@
 from __future__ import print_function
 import random, sys, os, pickle, time, math
 sortCount = 0
+score = 0
+oldScore = 0
+scoreUpd = 1
 frameCount = []
 if int(str(sys.version_info[0])+str(sys.version_info[1])) < 27:
     if os.system("python3 2048.py > "+os.devnull+" 2>&1"):
@@ -151,7 +154,7 @@ class Tile:
             self.coords = coords
             self.diff = (0, 0)
 def updateDisplay(screen, square=False, frame=0):
-    global objects, frameCount
+    global objects, frameCount, score, oldScore, scoreUpd
     w, h = pygame.display.get_surface().get_size()
     size = int(w/10)
     boardw = boardh = int(w*3/4)
@@ -182,9 +185,17 @@ def updateDisplay(screen, square=False, frame=0):
                     tile.new -= 1
                 if tile.linkCount:
                     tile.linkCount -= 1
+        if scoreUpd:
+            scoreUpd -= 1
+        else:
+            oldScore = score
         return
         # TODO: reset as if framecount is empty again
     if frameCount:
+        tr = lambda alpha, rgb, bg=(205, 192, 180): tuple((int((1-alpha)*(bg[n])+alpha*rgb[n]) for n in range(3)))
+        scoreFont = pygame.font.Font(os.path.join(".2048data", "ClearSans-Regular.ttf"), int(size/2.0))
+        scoreMult = frameCount[-1]
+        screen.blit(scoreFont.render("Score: "+str(int(score-scoreMult*(score-oldScore))), True, (119, 110, 101)), (int(w/2.0)-int(size*(len(str(score))+7)/8.0), int(h-w)-int(w/4.0)+1.2*size))
         for xval in enumerate(range(padl, w-padr+1, int((w-padr-padl)/3))):
             for yval in enumerate(range(padt, h-padb+1, int((h-padt-padb)/3))):
                 pygame.draw.rect(screen, (187,173,160), (xval[1]-int((w-padr-padl)/6)+int(size/4), yval[1]-int((h-padt-padb)/6)+int(size/2), int((w-padr-padl)/3), int((h-padt-padb)/3)))
@@ -212,7 +223,6 @@ def updateDisplay(screen, square=False, frame=0):
                     color = tile.getColor()
                     textColor = tile.getTextColor()
                     fadespeed = 0.3
-                    tr = lambda alpha, rgb: tuple((int((1-alpha)*((205, 192, 180)[n])+alpha*rgb[n]) for n in range(3)))
                     mult = (10*fadespeed)**(-10*fadespeed*mult)
 ##                    textmult = max([((mult+0.414)**2)-1, 0])
                     AAfilledRoundedRect(screen, tr(mult, color), (xval[1]-int((w-padr-padl)/6)+int(size/4)+int(border/4), yval[1]-int((h-padt-padb)/6)+int(size/2)+int(border/4), int((w-padr-padl)/3)-int(border/2), int((h-padt-padb)/3)-int(border/2)), 0.1)
@@ -273,12 +283,17 @@ def newTile(easy=False):
         return False
     return True
 def merge(dtile, stile):
+    global score, scoreUpd, oldScore
     if (dtile.value == stile.value != 0) and (dtile.merged == stile.merged == False):
         dtile.merged = True
         stile.oldValue = stile.value
         stile.value = 0
         dtile.oldValue = dtile.value
         dtile.value *= 2
+        if not scoreUpd:
+            scoreUpd = 1
+            oldScore = score
+        score += dtile.value
         dtile.link = stile
         dtile.linkCount = 2
         stile.oldCoords = stile.coords
@@ -378,9 +393,8 @@ def checkGO():
 objects = [[Tile() for i1 in range(4)] for i2 in range(4)]
 random.choice(random.choice(objects)).value = 2
 
-
 def startGame(FPS=60, text=False, easy=False, width=400, square=False, load=None):
-    global objects
+    global objects, score
     if load:
         objects = load
     playing = True
@@ -400,7 +414,7 @@ def startGame(FPS=60, text=False, easy=False, width=400, square=False, load=None
             if e.type == pygame.QUIT:
                 playing = False
                 with open(os.path.join(".2048data", "game.2048"), 'wb') as f:
-                    pickle.dump(objects, f)
+                    pickle.dump([objects, score], f)
             if e.type == pygame.KEYDOWN:
                 cont = doMerges(e.key, easy=easy)
                 if cont:
@@ -415,7 +429,7 @@ def startGame(FPS=60, text=False, easy=False, width=400, square=False, load=None
                         for frame in range(int(FPS/6)):
                             updateDisplay(d, square=square)
                         GOfont = pygame.font.Font(os.path.join(".2048data", "ClearSans-Regular.ttf"), int(width/12.0))
-                        d.blit(GOfont.render("Game Over!", True, (119, 110, 101)), (int(width/2.0)-2.6*int(width/12.0), int(height-width)-int(width/4.0)))
+                        d.blit(GOfont.render("Game Over!", True, (119, 110, 101)), (int(width/2.0)-2.6*int(width/12.0), int(height-width)-int(width/3.0)))
                         with open(os.path.join(".2048data", "game.2048"), 'wb') as f:
                             pickle.dump([], f)
                         for frame in range(5*FPS):
@@ -509,14 +523,15 @@ def addArgs():
     del args["reset"]
     return args
 def loadGame():
-    global objects
+    global score
     try:
         with open(os.path.join(".2048data", "game.2048"), 'rb') as f:
-            game = pickle.load(f)
+            game, score = pickle.load(f)
     except:
-        with open(os.path.join(".2048data", "game.2048"), 'wb') as f:
-            pickle.dump(objects, f)
+        global objects
         game=objects
+        with open(os.path.join(".2048data", "game.2048"), 'wb') as f:
+            pickle.dump([game, score], f)
     return game
 if __name__ == "__main__":
     startGame(**addArgs())
