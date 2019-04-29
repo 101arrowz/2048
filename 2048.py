@@ -422,7 +422,7 @@ def startGame(FPS=60, text=False, difficulty=2, width=400, square=False, load=No
                             updateDisplay(d, square=square)
                         GOfont = pygame.font.Font(os.path.join(".2048data", "ClearSans-Regular.ttf"), int(width/12.0))
                         d.blit(GOfont.render("Game Over!", True, (119, 110, 101)), (int(width/2.0)-2.6*int(width/12.0), int(height-width)-int(width/3.0)))
-                        with open(os.path.join(".2048data", "game.2048"), 'wb') as f:
+                        with open(os.path.join(".2048data", "game.2048"), 'w') as f:
                             f.write(json.dumps([]))
                         for frame in range(5*FPS):
                             pygame.display.update()
@@ -471,7 +471,7 @@ def addArgs():
     parser = argparse.ArgumentParser(description='Play 2048!')
     maxw = int(min([w, h*2/3.0])*11/12.0)
     try:
-        with open(os.path.join(".2048data", "settings.2048"), 'rb') as f:
+        with open(os.path.join(".2048data", "settings.2048"), 'r') as f:
             argsFromFile = json.loads(f.read())
     except:
         argsFromFile = {'FPS': 60, 'width': int(maxw*2/3.0), 'difficulty': 2, 'load': None, 'text': False, 'square': False, 'newgame': False, 'reset': False, 'store': False}
