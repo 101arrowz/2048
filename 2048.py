@@ -121,8 +121,8 @@ class Tile:
         if self.value in Tile.colors or self.value > 2048:
             self.color = Tile.colors[self.value] if self.value in Tile.colors else (60, 58, 50)
         else:
-            for p in range(12):
-                if 2**p < self.value < 2**(p+1):
+            for p in range(11):
+                if 2**p <= self.value < 2**(p+1):
                     break
             self.color = tuple(int(((self.value-2**p)*Tile.colors[2**p][n]+(2**(p+1)-self.value)*Tile.colors[2**(p+1)][n])/float(2**p)) for n in range(3))
         return self.color
@@ -455,6 +455,8 @@ def addArgs():
             w = int(resline[0])
             h = int(resline[1])
         elif sys.platform == "win32":
+            from ctypes.win32.user import SetProcessDPIAware
+            SetProcessDPIAware()
             reslines = [line for line in os.popen("wmic path Win32_VideoController get CurrentVerticalResolution,CurrentHorizontalResolution /format:value").read().split('\n') if line]
             w = int(reslines[0].split("=")[-1])
             h = int(reslines[1].split("=")[-1])
