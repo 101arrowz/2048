@@ -455,8 +455,8 @@ def addArgs():
             w = int(resline[0])
             h = int(resline[1])
         elif sys.platform == "win32":
-            from ctypes.win32.user import SetProcessDPIAware
-            SetProcessDPIAware()
+            import ctypes
+            ctypes.windll.user32.SetProcessDPIAware()
             reslines = [line for line in os.popen("wmic path Win32_VideoController get CurrentVerticalResolution,CurrentHorizontalResolution /format:value").read().split('\n') if line]
             w = int(reslines[0].split("=")[-1])
             h = int(reslines[1].split("=")[-1])
@@ -465,11 +465,11 @@ def addArgs():
             w = int(resline[0])
             h = int(resline[1])
         else:
-            w = 400
-            h = 600
+            w = 1280
+            h = 720
     except:
-        w = 400
-        h = 600
+        w = 1280
+        h = 720
     parser = argparse.ArgumentParser(description='Play 2048!')
     maxw = int(min([w, h*2/3.0])*11/12.0)
     try:
