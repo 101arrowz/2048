@@ -449,23 +449,14 @@ def addArgs():
     import argparse
     global objects, score
     try:
-        if sys.platform == "darwin":
-            resline = os.popen("system_profiler SPDisplaysDataType | grep Resolution | awk '/Resolution/{print $2, $3, $4}'").read().split("x")
-            w = int(resline[0])
-            h = int(resline[1])
-        elif sys.platform == "win32":
+        if sys.platform == "win32":
             import ctypes
             ctypes.windll.user32.SetProcessDPIAware()
-            reslines = [line for line in os.popen("wmic path Win32_VideoController get CurrentVerticalResolution,CurrentHorizontalResolution /format:value").read().split('\n') if line]
-            w = int(reslines[0].split("=")[-1])
-            h = int(reslines[1].split("=")[-1])
-        elif "linux" in sys.platform.lower():
-            resline = os.popen("xdpyinfo | awk '/dimensions/{print $2}'").read().split('x')
-            w = int(resline[0])
-            h = int(resline[1])
-        else:
-            w = 1280
-            h = 720
+        pygame.init()
+        dpinfo = pygame.display.Info()
+        w = dpinfo.current_w
+        h = dpinfo.current_h
+        print(w, h)
     except:
         w = 1280
         h = 720
