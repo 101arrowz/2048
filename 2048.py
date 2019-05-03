@@ -28,14 +28,14 @@ with open(os.devnull, 'w') as f:
             print()
             print("You are likely using the python installation that comes bundled with macOS.")
             print("To use 2048, please run the following command in Terminal:\n")
-            print("sudo -H curl https://bootstrap.pypa.io/get-pip.py | python && sudo -H pip install pygame\n")
+            print("curl https://bootstrap.pypa.io/get-pip.py | sudo -H python && sudo -H pip install pygame\n")
             print("Don't worry if it throws an EnvironmentError.")
             print("If you don't mind the hassle, it is recommended to install Python 3 instead of doing the above. Do `python3 2048.py` once you have.")
             print()
         elif "linux" in sys.platform or sys.platform == "darwin":
             print()
             print("Please install pygame to run 2048 with the command:\n")
-            print("curl https://bootstrap.pypa.io/get-pip.py | python"+("3" if sys.version_info[0] == 3 else "")+" && pip"+("3" if sys.version_info[0] == 3 else "")+" install pygame\n")
+            print("curl https://bootstrap.pypa.io/get-pip.py | sudo -H python"+("3" if sys.version_info[0] == 3 else "")+" && sudo -H pip"+("3" if sys.version_info[0] == 3 else "")+" install pygame\n")
             print("If you have both Python 2 and 3 installed, this script will default to Python 3, so use pip3 instead of pip.")
             print()
         elif sys.platform == "win32":
