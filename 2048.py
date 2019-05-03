@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 from __future__ import print_function
 import random, sys, os, json, time, math
+os.chdir(os.path.abspath(os.path.dirname(__file__)))
 sortCount = 0
 score = 0
 oldScore = 0
@@ -51,8 +52,6 @@ with open(os.devnull, 'w') as f:
         sys.exit(1)
     sys.stdout = oldstdout
 if not os.path.exists(os.path.join(".2048data", "ClearSans-Regular.ttf")):
-    oldwd = os.getcwd()
-    os.chdir(os.path.abspath(os.path.dirname(__file__)))
     os.system("mkdir .2048data > "+os.devnull+" 2>&1")
     if sys.platform == "win32":
         os.system("attrib +h .2048data")
@@ -63,7 +62,6 @@ if not os.path.exists(os.path.join(".2048data", "ClearSans-Regular.ttf")):
     else:
         os.system(("powershell.exe (new-object System.Net.WebClient).DownloadFile('https://raw.githubusercontent.com/101arrowz/2048/master/.2048data/ClearSans-Regular.ttf','"+os.path.join('.', '.2048data', 'ClearSans-Regular.ttf')+"')" if sys.platform == "win32" else "curl -L -o "+os.path.join(".2048data", "ClearSans-Regular.ttf")+" 'https://raw.githubusercontent.com/101arrowz/2048/master/.2048data/ClearSans-Regular.ttf'")+" > "+os.devnull+" 2>&1")
     print("Font successfully downloaded!")
-    os.chdir(oldwd)
 # ROUNDED RECTANGLE CODE https://www.pygame.org/project-AAfilledRoundedRect-2349-.html
 
 def AAfilledRoundedRect(surface,color,rect,radius=0.4):
