@@ -28,7 +28,7 @@ with open(os.devnull, 'w') as f:
             print()
             print("You are likely using the python installation that comes bundled with macOS.")
             print("To use 2048, please run the following command in Terminal:\n")
-            print("sudo -H pip2 install pygame\n")
+            print("sudo -H pip install pygame\n")
             print("Don't worry if it throws an EnvironmentError.")
             print("If you don't mind the hassle, it is recommended to install Python 3 instead of doing the above. Do `python3 2048.py` once you have.")
             print()
@@ -454,9 +454,9 @@ def addArgs():
             ctypes.windll.user32.SetProcessDPIAware()
         pygame.init()
         dpinfo = pygame.display.Info()
+        pygame.quit()
         w = dpinfo.current_w
         h = dpinfo.current_h
-        print(w, h)
     except:
         w = 1280
         h = 720
