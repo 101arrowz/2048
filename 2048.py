@@ -493,6 +493,7 @@ def addArgs():
                     return [retobj, score]
                 else:
                     retobj = []
+                    sumval = 0
                     lines = f.readlines()[:4]
                     if len(lines) != 4:
                         raise argparse.ArgumentTypeError("invalid formatting of text file (less than four lines)")
@@ -500,10 +501,15 @@ def addArgs():
                         if len(line.split(" ")) != 4:
                             raise argparse.ArgumentTypeError("invalid formatting of text file (wrong number of tiles or spaces)")
                         try:
-                            retobj.append([Tile(value=int(val)) for val in line.split(" ")])
+                            tmplist = []
+                            for val in line.split(" "):
+                                val = int(val)
+                                tmplist.append(Tile(value=val))
+                                sumval += 2*val-3.4
+                            retobj.append(tmplist)
                         except ValueError:
                             raise argparse.ArgumentTypeError("invalid formatting of text file (not all tiles are numbers or there are extraneous spaces)")
-                return [retobj, 0]
+                return [retobj, int(sumval-sumval%2)]
         except Exception as e:
             if isinstance(e, argparse.ArgumentTypeError):
                 raise e
@@ -515,7 +521,7 @@ def addArgs():
                        help='width of window in pixels (height is dependent upon width). Default is '+str(argsFromFile["width"])+'.')
     parser.add_argument('-difficulty', '-d', metavar="LEVEL", type=int, choices=(1,2,3),
                        help='Difficulty level. Default is '+str(argsFromFile["difficulty"])+'. At level 1, tiles will spawn less frequently depending on the number of tiles already on the board. At level 2, normal 2048. At level 3, tiles with values that are multiples of 3 can spawn as well.')
-    parser.add_argument('--load', metavar='FILE', type=openableFile, 
+    parser.add_argument('-load', '-l', metavar='FILE', type=openableFile, 
                        help='Load a game. Must be either a .2048 gamefile found in the ".2048data" directory or a text file with four lines, each containing four values separated by spaces. For empty spaces, write 0. WARNING: THIS WILL OVERWRITE YOUR SAVED GAME! It is stored in "'+os.path.join(os.getcwd(), '.2048data', 'game.2048')+'", so copy it out of there if you want to keep your save!')
     parser.add_argument('--text', action='store_true',
                        help='Text mode (will not disable graphics)')
