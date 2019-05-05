@@ -8,10 +8,11 @@ oldScore = 0
 scoreUpd = 1
 frameCount = []
 if int(str(sys.version_info[0])+str(sys.version_info[1])) < 27:
-    if os.system("python3 2048.py > "+os.devnull+" 2>&1"):
+    if (True if sys.platform == 'win32' else (os.system('python3 -c "" 2>&1'))):
         print("Please use Python 2.7 or later to run 2048!")
         sys.exit(1)
     else:
+        os.system(" ".join(["python3 2048.py"]+sys.argv[1:]))
         sys.exit(0)
 with open(os.devnull, 'w') as f:
     oldstdout = sys.stdout
@@ -21,23 +22,35 @@ with open(os.devnull, 'w') as f:
     except ImportError:
         sys.stdout = oldstdout
         if sys.version_info[0] < 3:
-            if os.system(" ".join(["python3 2048.py"]+sys.argv[1:])+" > "+os.devnull+" 2>&1"):
+            if (True if sys.platform == 'win32' else (os.system('python3 -c "" > /dev/null 2>&1'))):
                 pass
             else:
+                os.system(" ".join(["python3 2048.py"]+sys.argv[1:]))
                 sys.exit(0)
         if sys.platform == "darwin" and sys.version_info[0] < 3:
-            print()
-            print("You are likely using the python installation that comes bundled with macOS.")
-            print("To use 2048, please run the following command in Terminal:\n")
-            print("curl https://bootstrap.pypa.io/get-pip.py | sudo -H python && sudo -H pip install pygame\n")
-            print("Don't worry if it throws an EnvironmentError.")
-            print("If you don't mind the hassle, it is recommended to install Python 3 instead of doing the above. Do `python3 2048.py` once you have.")
-            print()
+            ver = int(os.popen('defaults read loginwindow SystemVersionStampAsString').read().split('.')[1])
+            if ver >= 14:
+                print()
+                print("As of May 2019, macOS Mojave 10.14 and up do not support pygame on Python 2 due to an issue with the new Dark/Light mode settings. Therefore, you must install Python 3 to run 2048.\n")
+                print("Please download your preferred version of Python 3 from https://www.python.org/downloads/\n")
+                print("It may be easier to install Python 3.6.8 by running the following command from Terminal:\n")
+                print("curl -o ~/Downloads/python-3.6.8.pkg https://www.python.org/ftp/python/3.6.8/python-3.6.8-macosx10."+('6' if ver <= 6 else '9')+".pkg && sudo installer -pkg ~/Downloads/python-3.6.8.pkg -target / && mv ~/Downloads/python-3.6.8.pkg ~/.Trash\n")
+                print("Once you have done that, run the following command in Terminal:\n")
+                print("curl https://bootstrap.pypa.io/get-pip.py | sudo -H python3 && sudo -H pip3 install pygame\n")
+                print("After that, you should be able to play 2048!")
+                print()
+            else:
+                print()
+                print("You are likely using the python installation that comes bundled with macOS.")
+                print("To use 2048, please run the following command in Terminal:\n")
+                print("curl https://bootstrap.pypa.io/get-pip.py | sudo -H python && sudo -H pip install pygame\n")
+                print("Don't worry if it throws an EnvironmentError.")
+                print("If you don't mind the hassle, it is recommended to install Python 3 instead of doing the above. Do `python3 2048.py` once you have.")
+                print()
         elif "linux" in sys.platform or sys.platform == "darwin":
             print()
             print("Please install pygame to run 2048 with the command:\n")
-            print("curl https://bootstrap.pypa.io/get-pip.py | sudo -H python"+("3" if sys.version_info[0] == 3 else "")+" && sudo -H pip"+("3" if sys.version_info[0] == 3 else "")+" install pygame\n")
-            print("If you have both Python 2 and 3 installed, this script will default to Python 3, so use pip3 instead of pip.")
+            print("curl https://bootstrap.pypa.io/get-pip.py | sudo -H python"+("3" if sys.version_info[0] == 3 else "")+" && sudo -H pip"+("3" if sys.version_info[0] == 3 else "")+" install pygame")
             print()
         elif sys.platform == "win32":
             print()
@@ -58,7 +71,7 @@ if not os.path.exists(os.path.join(".2048data", "ClearSans-Regular.ttf")):
     print("Attempting to download font... Either this is the first run or the game directory was not found.")
     if os.system("ping "+("-n" if sys.platform == "win32" else "-c")+" 1 github.com > "+os.devnull+" 2>&1"):
         print("Either GitHub is down (unlikely) or you are not connected to the internet. Connect to the internet next time to download the font. You will not need internet connectivity after that. Exiting...")
-        sys.exit()
+        sys.exit(1)
     else:
         os.system(("powershell.exe (new-object System.Net.WebClient).DownloadFile('https://raw.githubusercontent.com/101arrowz/2048/master/.2048data/ClearSans-Regular.ttf','"+os.path.join('.', '.2048data', 'ClearSans-Regular.ttf')+"')" if sys.platform == "win32" else "curl -L -o "+os.path.join(".2048data", "ClearSans-Regular.ttf")+" 'https://raw.githubusercontent.com/101arrowz/2048/master/.2048data/ClearSans-Regular.ttf'")+" > "+os.devnull+" 2>&1")
     print("Font successfully downloaded!")
