@@ -119,7 +119,7 @@ def AAfilledRoundedRect(surface,color,rect,radius=0.4):
 # END ROUNDED RECTANGLE CODE
 
 class Tile:
-    colors = {0:(205,192,180),2:(238,228,218),4:(237,224,200),8:(242, 177, 121),16:(245, 149, 99),32:(246, 124, 95),64:(246, 94, 59),128:(237, 207, 114),256:(237, 204, 97),512:(237, 200, 80),1024:(237, 197, 63),2048:(237, 194, 46)}
+    colors = {0:(205,192,180),1:(221,210,199),2:(238,228,218),4:(237,224,200),8:(242, 177, 121),16:(245, 149, 99),32:(246, 124, 95),64:(246, 94, 59),128:(237, 207, 114),256:(237, 204, 97),512:(237, 200, 80),1024:(237, 197, 63),2048:(237, 194, 46)}
     def __init__(self, value=0):
         self.oldValue = value
         self.value = value
@@ -138,7 +138,7 @@ class Tile:
             self.color = tuple(int(((self.value-2**p)*Tile.colors[2**p][n]+(2**(p+1)-self.value)*Tile.colors[2**(p+1)][n])/float(2**p)) for n in range(3))
         return self.color
     def getTextColor(self):
-        if self.value in [0, 2, 3, 4, 6]:
+        if self.value < 8:
             self.textColor = (119, 110, 101)
         else:
             self.textColor = (249, 246, 242)
@@ -390,6 +390,7 @@ def checkGO():
 objects = [[Tile() for i1 in range(4)] for i2 in range(4)]
 random.choice(random.choice(objects)).value = 2
 
+
 def startGame(FPS=60, text=False, difficulty=2, width=400, square=False, load=None):
     global objects, score
     if load:
@@ -505,7 +506,7 @@ def addArgs():
                             for val in line.split(" "):
                                 val = int(val)
                                 tmplist.append(Tile(value=val))
-                                sumval += 2*val-3.4
+                                sumval += max((0, 2*val-3.4))
                             retobj.append(tmplist)
                         except ValueError:
                             raise argparse.ArgumentTypeError("invalid formatting of text file (not all tiles are numbers or there are extraneous spaces)")
@@ -579,6 +580,8 @@ def loadGame():
             load = json.loads(f.read())
             game = [[Tile(value=val) for val in row] for row in load[0]]
             score = load[1]
+            if [[tile.__dict__["value"] for tile in row] for row in game] == [[0 for i1 in range(4)] for i2 in range(4)]:
+                random.choice(random.choice(game)).value = 2
     except:
         global objects
         game=objects
