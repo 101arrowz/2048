@@ -1,0 +1,48 @@
+#!/usr/bin/env bash
+SCPTH="$( cd "$(dirname "$0")" ; pwd -P )"
+SYSV=`sw_vers -productVersion | awk -F '.' '{print $2}'`
+PROMPT='with prompt "The 2048 installer needs to install some packages."'
+if [ "$SYSV" -lt '10' ]; then PROMPT=''; fi
+if [ "$EUID" -ne 0 ]; then /usr/bin/osascript -e 'do shell script "cd '"$SCPTH"' && ./Install2048 2>&1" '"$PROMPT"' with administrator privileges' >> /dev/null 2>&1  || (/usr/bin/osascript -e 'display alert "Installation failed!" message "The 2048 installer requires administrator privileges to install all necessary components." as critical buttons {"OK"} default button "OK"' >> /dev/null 2>&1); exit; fi
+/usr/bin/osascript -e 'display notification "Installation has begun." with title "2048 is installing..."'
+if [ "$SYSV" -ge '14' ]; then
+
+if ! command -v python3 &>/dev/null; then
+
+INSTPATH="$TMPDIR"python3.6.8.pkg
+curl -o "$INSTPATH" https://www.python.org/ftp/python/3.6.8/python-3.6.8-macosx10.9.pkg
+if [ $? -eq 6 ]; then /usr/bin/osascript -e 'display alert "Installation failed!" message "Either python.org is down (unlikely) or you are not connected to the Internet. Aborting!" as critical buttons {"OK"} default button "OK"'; exit
+elif [ $? -ne 0 ]; then /usr/bin/osascript -e 'display alert "Installation failed!" message "An unknown error occurred while downloading Python 3. Aborting!" as critical buttons {"OK"} default button "OK"'; exit
+fi
+
+sudo installer -pkg "$INSTPATH" -target /
+if [ $? -ne 0 ]; then /usr/bin/osascript -e 'display alert "Installation failed!" message "An unknown error occurred while installing Python 3. Aborting!" as critical buttons {"OK"} default button "OK"'; exit; fi
+
+fi
+curl https://bootstrap.pypa.io/get-pip.py | sudo -H python3 && sudo -H pip3 install pygame
+if [ $? -ne 0 ]; then /usr/bin/osascript -e 'display alert "Installation failed!" message "An unknown error occurred while installing pip or pygame. Aborting!" as critical buttons {"OK"} default button "OK"'; exit; fi
+else
+if command -v python3 &>/dev/null; then
+curl https://bootstrap.pypa.io/get-pip.py | sudo -H python3 && sudo -H pip3 install pygame
+if [ $? -ne 0 ]; then /usr/bin/osascript -e 'display alert "Installation failed!" message "An unknown error occurred while installing pip or pygame. Aborting!" as critical buttons {"OK"} default button "OK"'; exit; fi
+else
+curl https://bootstrap.pypa.io/get-pip.py | sudo -H python && /usr/bin/which pip
+if [ $? -ne 0 ]; then /usr/bin/osascript -e 'display alert "Installation failed!" message "An unknown error occurred while installing pip. Aborting!" as critical buttons {"OK"} default button "OK"'; exit; fi
+sudo -H pip install pygame
+fi
+fi
+
+
+cd /Applications
+mkdir 2048.app 2048.app/Contents
+if [ $? -ne 0 ]; then /usr/bin/osascript -e 'display alert "Installation failed!" message "We could not install 2048 because 2048.app already exists in the Applications folder!" as critical buttons {"OK"} default button "OK"'; exit; fi
+cd 2048.app/Contents
+mkdir MacOS Resources
+echo '#!/usr/bin/env bash
+cd "$( cd "$(dirname "$0")" ; pwd -P )"/../Resources
+./2048.py' >> MacOS/2048 && chmod 755 MacOS/2048
+
+curl -o Resources/2048.py 'https://raw.githubusercontent.com/101arrowz/2048/master/2048.py' && chmod 755 Resources/2048.py
+chown -R `stat -f "%Su" /dev/console` /Applications/2048.app
+if command -v python -c "import pygame" || python3 -c "import pygame"; then /usr/bin/osascript -e 'display notification "2048 is now ready to play!" with title "Installation succeeded!" sound name "Hero"'
+else /usr/bin/osascript -e 'display alert "Installation failed!" message "We could not install 2048’s required dependencies due to an unknown error. Try manual installation." as critical buttons {"OK"} default button "OK"'; exit; fi
