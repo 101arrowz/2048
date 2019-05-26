@@ -545,10 +545,11 @@ def addArgs():
             sys.exit(1)
         else:
             if os.system(("powershell.exe (new-object System.Net.WebClient).DownloadFile('{}','"+os.path.join('.', '2048.py')+"')" if sys.platform == "win32" else "curl -L -o "+os.path.join(".", "2048.py")+" '{}'").format(UPDATEURL)+" > "+os.devnull+" 2>&1"):
+                print("Update failed for an unknown reason. Contact the developers if the issue persists.")
+                sys.exit(1)
+            else:
                 print("Update successful!")
                 sys.exit(0)
-            else:
-                print("Update failed for an unknown reason. Contact the developers if the issue persists.")
     del args['update']
     if args["reset"]:
         args["reset"] = False
