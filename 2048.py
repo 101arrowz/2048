@@ -535,7 +535,7 @@ def addArgs():
     parser.add_argument('--store', action='store_true',
                        help='Save settings - next time you run this game, 2048 will use the settings you just provided.  Be warned - if you use this with --newgame, each time you reopen 2048, your game will reset!')
     parser.add_argument('--update', action='store_true',
-                       help='Update 2048 and exit')
+                       help='Update 2048 and exit. The feature will get the latest file from GitHub regardless of whether it has changed, so this may not necessarily do anything.')
     args = vars(parser.parse_args())
     if args['update']:
         UPDATEURL = 'https://raw.githubusercontent.com/101arrowz/2048/master/2048.py'
@@ -543,9 +543,11 @@ def addArgs():
             print("Either GitHub is down (unlikely) or you are not connected to the internet. Connect to the internet next time to download the font. You will not need internet connectivity after that. Exiting...")
             sys.exit(1)
         else:
-            os.system(("powershell.exe (new-object System.Net.WebClient).DownloadFile('{}','"+os.path.join('.', '2048.py')+"')" if sys.platform == "win32" else "curl -L -o "+os.path.join(".", "2048.py")+" '{}'").format(UPDATEURL)+" > "+os.devnull+" 2>&1")
-            print("Update successful!")
-            sys.exit(0)
+            if os.system(("powershell.exe (new-object System.Net.WebClient).DownloadFile('{}','"+os.path.join('.', '2048.py')+"')" if sys.platform == "win32" else "curl -L -o "+os.path.join(".", "2048.py")+" '{}'").format(UPDATEURL)+" > "+os.devnull+" 2>&1"):
+                print("Update successful!")
+                sys.exit(0)
+            else:
+                print("Update failed for an unknown reason. Contact the developers if the issue persists.")
     if args["reset"]:
         args["reset"] = False
         os.system(("del " if sys.platform == "win32" else "rm ")+os.path.join(".2048data", "settings.2048")+" > "+os.devnull+" 2>&1")
