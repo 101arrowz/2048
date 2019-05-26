@@ -544,6 +544,7 @@ def addArgs():
             sys.exit(1)
         else:
             os.system(("powershell.exe (new-object System.Net.WebClient).DownloadFile('{}','"+os.path.join('.', '2048.py')+"')" if sys.platform == "win32" else "curl -L -o "+os.path.join(".", "2048.py")+" '{}'").format(UPDATEURL)+" > "+os.devnull+" 2>&1")
+            print("Update successful!")
             sys.exit(0)
     if args["reset"]:
         args["reset"] = False
