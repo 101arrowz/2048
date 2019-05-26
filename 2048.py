@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+#TEST
 from __future__ import print_function
 import random, sys, os, json, time, math
 os.chdir(os.path.abspath(os.path.dirname(__file__)))
@@ -535,7 +536,7 @@ def addArgs():
     parser.add_argument('--store', action='store_true',
                        help='Save settings - next time you run this game, 2048 will use the settings you just provided.  Be warned - if you use this with --newgame, each time you reopen 2048, your game will reset!')
     parser.add_argument('--update', action='store_true',
-                       help='Update 2048 and exit. The feature will get the latest file from GitHub regardless of whether it has changed, so this may not necessarily do anything.')
+                       help='Update 2048 and exit. The feature will get the latest file from GitHub regardless of whether it has changed, so this may not necessarily do anything. FOR THIS TO WORK ON WINDOWS, RENAME 2048.PY TO SOMETHING ELSE, THEN UPDATE!')
     args = vars(parser.parse_args())
     if args['update']:
         UPDATEURL = 'https://raw.githubusercontent.com/101arrowz/2048/master/2048.py'
