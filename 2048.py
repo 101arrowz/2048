@@ -548,6 +548,7 @@ def addArgs():
                 sys.exit(0)
             else:
                 print("Update failed for an unknown reason. Contact the developers if the issue persists.")
+    del args['update']
     if args["reset"]:
         args["reset"] = False
         os.system(("del " if sys.platform == "win32" else "rm ")+os.path.join(".2048data", "settings.2048")+" > "+os.devnull+" 2>&1")
