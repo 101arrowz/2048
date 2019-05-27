@@ -499,7 +499,7 @@ def addArgs():
         with open(os.path.join(".2048data", "settings.2048"), 'r') as f:
             argsFromFile = json.loads(f.read())
     except:
-        argsFromFile = {'FPS': 60, 'width': int(maxw*2/3.0), 'difficulty': 2, 'load': None, 'text': False, 'square': False, 'newgame': False, 'reset': False, 'store': False}
+        argsFromFile = {'FPS': 60, 'width': int(maxw*2/3.0), 'difficulty': 2, 'load': None, 'server': None, 'text': False, 'square': False, 'newgame': False, 'reset': False, 'store': False}
     def openableFile(s):
         if not os.path.isfile(s):
             raise argparse.ArgumentTypeError("invalid filepath")
@@ -548,6 +548,8 @@ def addArgs():
             return ServerPlayer(port=port)
         except ValueError:
             import socket
+            if s == 'locahost':
+                s = '127.0.0.1'
             if ':' in s:
                 try:
                     host, port = s.split(':')
