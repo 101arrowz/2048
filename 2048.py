@@ -548,8 +548,8 @@ def addArgs():
             return ServerPlayer(port=port)
         except ValueError:
             import socket
-            if s == 'locahost':
-                s = '127.0.0.1'
+            if 'localhost' in s:
+                s = s.replace('localhost', '127.0.0.1')
             if ':' in s:
                 try:
                     host, port = s.split(':')
@@ -768,7 +768,7 @@ class ServerPlayer:
             except ConnectionResetError:
                 print("User "+self.user[1]+" disconnected!")
                 break
-        sys.exit(0)
+        self.__init__(host=self.host, port=self.port)
 if __name__ == "__main__":
     args = addArgs()
     if type(args['server']) == tuple:
