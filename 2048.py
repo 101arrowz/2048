@@ -404,7 +404,7 @@ def startGame(FPS=60, text=False, difficulty=2, width=400, square=False, load=No
         server.send(bytearray(pickle.dumps((width, int(width*1.5)))))
         resp = server.user[0].recv(2048)
         if resp:
-            Thread(target=server.sendObjects).start()
+            Thread(target=server.sendObjects, daemon=True).start()
         else:
             sys.exit(0)
     playing = True
@@ -725,12 +725,12 @@ class ServerPlayer:
         self.s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.s.bind((host, port))
         self.s.listen()
-        print("Waiting for users...")
         self.user = self.newUser()
         self.clock = pygame.time.Clock()
         self.key = None
     def newUser(self):
         global version
+        print("Waiting for users...")
         stream, addr = self.s.accept()
         print("User joining...")
         uservers = stream.recv(2048)
@@ -766,11 +766,12 @@ class ServerPlayer:
             try:
                 resp = self.user[0].recv(2048)
                 if not resp:
+                    print("User "+self.user[1]+" disconnected!")
                     break
             except ConnectionResetError:
                 print("User "+self.user[1]+" disconnected!")
                 break
-        self.__init__(host=self.host, port=self.port)
+        self.user = self.newUser()
         self.send(bytearray(pickle.dumps((self.width, self.height))))
         self.sendObjects()
 if __name__ == "__main__":
