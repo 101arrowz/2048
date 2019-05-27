@@ -1,8 +1,8 @@
 #!/usr/bin/env python
-#TEST
 from __future__ import print_function
 import random, sys, os, json, time, math
 os.chdir(os.path.abspath(os.path.dirname(__file__)))
+version = '1.0'
 sortCount = 0
 score = 0
 oldScore = 0
@@ -151,8 +151,8 @@ class Tile:
         except:
             self.coords = coords
             self.diff = (0, 0)
-def updateDisplay(screen, square=False, frame=0):
-    global objects, frameCount, score, oldScore, scoreUpd
+def updateDisplay(objects, oldScore, score, screen, square=False, frame=0):
+    global frameCount, scoreUpd
     w, h = pygame.display.get_surface().get_size()
     size = int(w/10)
     boardw = boardh = int(w*3/4)
@@ -187,7 +187,7 @@ def updateDisplay(screen, square=False, frame=0):
             scoreUpd -= 1
         else:
             oldScore = score
-        return
+        return oldScore, score
         # TODO: reset as if framecount is empty again
     if frameCount:
         tr = lambda alpha, rgb, bg=(205, 192, 180): tuple((int((1-alpha)*(bg[n])+alpha*rgb[n]) for n in range(3)))
@@ -239,6 +239,7 @@ def updateDisplay(screen, square=False, frame=0):
                     tile.value = int(tile.value*2.0)
         pygame.display.update()
         frameCount.pop(-1)
+    return oldScore, score
 def itemSort(item):
     global sortCount
     sortCount += 1
@@ -266,7 +267,7 @@ def itemSortRev(item):
         return sortCount - 4
     else:
         return sortCount
-def newTile(difficulty=2):
+def newTile(objects, difficulty=2):
     choices = []
     for row in objects:
         for tile in row:
@@ -279,7 +280,7 @@ def newTile(difficulty=2):
             tile.new = 2
     except:
         return False
-    return True
+    return objects
 def merge(dtile, stile):
     global score, scoreUpd, oldScore
     if (dtile.value == stile.value != 0) and (dtile.merged == stile.merged == False):
@@ -298,8 +299,7 @@ def merge(dtile, stile):
     if (stile.value != dtile.value == 0):
         dtile.value = stile.value
         stile.value = 0
-def doMerges(key, difficulty=2):
-    global objects
+def doMerges(objects, key, difficulty=2):
     objectsoriginal = [[Tile(value=tile.value) for tile in row] for row in objects]
     if key in [pygame.K_RIGHT, pygame.K_d, "right"]:
         objectscopy = []
@@ -352,8 +352,10 @@ def doMerges(key, difficulty=2):
     else:
         return "nokey"
     if [[tile.value for tile in row] for row in objects] != [[tile.value for tile in row] for row in objectsoriginal]:
-        if newTile(difficulty=difficulty):
-            return True
+        resp = newTile(objects, difficulty=difficulty)
+        if resp:
+            objects = resp
+            return objects
         else:
             return False
     else:
@@ -392,17 +394,26 @@ objects = [[Tile() for i1 in range(4)] for i2 in range(4)]
 random.choice(random.choice(objects)).value = 2
 
 
-def startGame(FPS=60, text=False, difficulty=2, width=400, square=False, load=None):
-    global objects, score
+def startGame(FPS=60, text=False, difficulty=2, width=400, square=False, load=None, server=None):
+    global objects, oldScore, score
     if load:
         objects = load
+    if server:
+        from threading import Thread
+        import pickle
+        server.send(bytearray(pickle.dumps((width, int(width*1.5)))))
+        resp = server.user[0].recv(2048)
+        if resp:
+            Thread(target=server.sendObjects).start()
+        else:
+            sys.exit(0)
     playing = True
     height = int(width*1.5)
     pygame.init()
     d = pygame.display.set_mode((width, height))
     pygame.display.set_caption('2048')
     clock = pygame.time.Clock()
-    updateDisplay(d, square=square, frame=1)
+    oldScore, score = updateDisplay(objects, oldScore, score, d, square=square, frame=1)
     if text:
         os.system("clear")
         print(returnFormattedObjects(spacing=2))
@@ -421,18 +432,23 @@ def startGame(FPS=60, text=False, difficulty=2, width=400, square=False, load=No
                     with open(os.path.join(".2048data", "game.2048"), 'w') as f:
                         f.write(json.dumps([[[tile.value for tile in row] for row in objects], score], indent=4))
                     break
-                cont = doMerges(e.key, difficulty= difficulty)
+                cont = doMerges(objects, e.key, difficulty= difficulty)
                 if cont:
                     if cont in ["nokey", "illegal"]:
                         printout = False
                     else:
+                        objects = cont
                         printout = True
+                        if server:
+                            server.update = True
                     if checkGO():
                         playing = False
                         printout = False
-                        updateDisplay(d, square=square, frame=int(FPS/8.0))
+                        if server:
+                            server.GO = True
+                        oldScore, score = updateDisplay(objects, oldScore, score, d, square=square, frame=int(FPS/8.0))
                         for frame in range(int(FPS/8.0)):
-                            updateDisplay(d, square=square)
+                            oldScore, score = updateDisplay(objects, oldScore, score, d, square=square)
                         GOfont = pygame.font.Font(os.path.join(".2048data", "ClearSans-Regular.ttf"), int(width/12.0))
                         d.blit(GOfont.render("Game Over!", True, (119, 110, 101)), (int(width/2.0)-2.6*int(width/12.0), int(height-width)-int(width/3.0)))
                         with open(os.path.join(".2048data", "game.2048"), 'w') as f:
@@ -456,9 +472,12 @@ def startGame(FPS=60, text=False, difficulty=2, width=400, square=False, load=No
             if text:
                 os.system("cls" if sys.platform == "win32" else "clear")
                 print(returnFormattedObjects(reset=True, spacing=2))
-            updateDisplay(d, square=square, frame=int(FPS/8.0))
-        updateDisplay(d, square=square)
+            oldScore, score = updateDisplay(objects, oldScore, score, d, square=square, frame=int(FPS/8.0))
+        oldScore, score = updateDisplay(objects, oldScore, score, d, square=square)
     pygame.quit()
+    if server:
+        server.GO = True
+    sys.exit(0)
 def addArgs():
     import argparse
     global objects, score
@@ -517,6 +536,45 @@ def addArgs():
                 raise e
             else:
                 raise argparse.ArgumentTypeError("there was a problem opening the file. See the error below:\n\n{0}\n\nIf you cannot fix this error, contact the developers on GitHub.".format(str(e).split('\n')[-1]))               
+    def validPort(s):
+        host = None
+        port = None
+        try:
+            port = int(s)
+            if port < 1024:
+                raise argparse.ArgumentTypeError("invalid port: must be greater than 1024 (protected)")
+            if port > 65535:
+                raise argparse.ArgumentTypeError("invalid port: must be under 65535")
+            return ServerPlayer(port=port)
+        except ValueError:
+            import socket
+            if ':' in s:
+                try:
+                    host, port = s.split(':')
+                    try:
+                        port = int(port)
+                        if port < 1024:
+                            raise argparse.ArgumentTypeError("invalid port: must be greater than 1024 (protected)")
+                        if port > 65535:
+                            raise argparse.ArgumentTypeError("invalid port: must be under 65535")
+                    except ValueError:
+                        raise argparse.ArgumentTypeError("invalid port: port following IP address is non-integer") 
+                    try:
+                        socket.inet_aton(host)
+                    except socket.error:
+                        raise argparse.ArgumentTypeError("invalid IP address: not recognized by `socket` module (likely illegal)")
+                except ValueError:
+                    raise argparse.ArgumentTypeError("invalid IP address: either multiple colons (maximum one between IP and port number) or IPv6 (not supported)")
+            elif '.' in s:
+                port = 2048
+                host = s
+                try:
+                    socket.inet_aton(host)
+                except socket.error:
+                    raise argparse.ArgumentTypeError("invalid IP address: not recognized by `socket` module (likely illegal)")
+            else:
+                raise argparse.ArgumentTypeError("invalid port: not an integer")
+            return (host, port)
     parser.add_argument('-FPS', '-f', metavar="FRAMERATE", type=int,
                        help='Framerate at which the game runs. Default is '+str(argsFromFile["FPS"])+'.')
     parser.add_argument('-width', '-w', metavar="PIXELS", type=int,
@@ -525,6 +583,8 @@ def addArgs():
                        help='Difficulty level. Default is '+str(argsFromFile["difficulty"])+'. At level 1, tiles will spawn less frequently depending on the number of tiles already on the board. At level 2, normal 2048. At level 3, tiles with values that are multiples of 3 can spawn as well.')
     parser.add_argument('-load', '-l', metavar='FILE', type=openableFile, 
                        help='Load a game. Must be either a .2048 gamefile found in the ".2048data" directory or a text file with four lines, each containing four values separated by spaces. For empty spaces, write 0. WARNING: THIS WILL OVERWRITE YOUR SAVED GAME! It is stored in "'+os.path.join(os.getcwd(), '.2048data', 'game.2048')+'", so copy it out of there if you want to keep your save!')
+    parser.add_argument('-server', '-s', nargs='?', const='2048', metavar='PORT/IP', type=validPort, 
+                       help="Host a server for others to spectate your game (more functionality coming soon) OR join another server. Input just a number for a port to HOST a server, or an entire IP in IPv4 form, which is four numbers separated by dots (optionally, followed by ':PORT' where PORT is the port number). Default port for both hosting and connecting to a server is 2048. Don't worry if you don't know what that means, just don't put any value for this argument to host a server, or put an IP address to connect to a server. WARNING: CONNECTING TO A SERVER WILL OVERRIDE YOUR GRAPHICS SETTINGS!")
     parser.add_argument('--text', action='store_true',
                        help='Text mode (will not disable graphics)')
     parser.add_argument('--square', action='store_true',
@@ -554,8 +614,8 @@ def addArgs():
     if args["reset"]:
         args["reset"] = False
         os.system(("del " if sys.platform == "win32" else "rm ")+os.path.join(".2048data", "settings.2048")+" > "+os.devnull+" 2>&1")
-        argsFromFile = {'FPS': 60, 'width': int(maxw*2/3.0), 'difficulty': 2, 'text': False, 'square': False, 'newgame': False, 'reset': False, 'store': False}
-    if args == {'FPS': None, 'width': None, 'difficulty': None, 'load': None, 'text': False, 'square': False, 'newgame': False, 'reset': False, 'store': False}:
+        argsFromFile = {'FPS': 60, 'width': int(maxw*2/3.0), 'difficulty': 2, 'load': None, 'server': None, 'text': False, 'square': False, 'newgame': False, 'reset': False, 'store': False}
+    if args == {'FPS': None, 'width': None, 'difficulty': None, 'load': None, 'server': None, 'text': False, 'square': False, 'newgame': False, 'reset': False, 'store': False}:
         args = argsFromFile
     if args["FPS"] == None:
         args["FPS"] = argsFromFile["FPS"]
@@ -602,5 +662,114 @@ def loadGame():
         global objects
         game=objects
     return game
+def online(host='localhost', port=2048, name='2048 Player', FPS=60, square=False):
+    global version
+    import socket, pickle
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+        s.connect((host, port))
+        s.sendall(bytearray(version, encoding='UTF-8'))
+        s.recv(2048)
+        s.sendall(bytearray(name, encoding='UTF-8'))
+        resp = s.recv(2048)
+        s.sendall(bytearray('OK', encoding='UTF-8'))
+        if not resp:
+            print("Mismatched versions of 2048! Both users should update to the latest version with the --update flag.")
+            sys.exit(1)
+        else:
+            clock = pygame.time.Clock()
+            width, height = pickle.loads(resp)
+            s.sendall(bytearray("OK", encoding='UTF-8'))
+            resp = s.recv(2048)
+            objects, score = pickle.loads(resp)
+            oldScore = score
+            pygame.init()
+            d = pygame.display.set_mode((width, height))
+            pygame.display.set_caption('2048: Opponent')
+            updateDisplay(objects, oldScore, score, d, square=square, frame=1)
+            updateDisplay(objects, oldScore, score, d, square=square)
+            frame = 0
+            while True:
+                resp = s.recv(2048)
+                s.sendall(bytearray('OK', encoding='UTF-8'))
+                if resp:
+                    val = pickle.loads(resp)
+                    if val != 'OK':
+                        oldScore = score
+                        objects, score = val
+                        frame = int(FPS/8.0)
+                        updateDisplay(objects, oldScore, score, d, square=square, frame=frame)
+                    else:
+                        if frame:
+                            updateDisplay(objects, oldScore, score, d, square=square)
+                            frame -= 1
+                            clock.tick(FPS)
+                    for e in pygame.event.get():
+                        if e.type == pygame.QUIT:
+                            pygame.quit()
+                            sys.exit()
+                        elif e.type ==  pygame.KEYDOWN:
+                            if e.key in [pygame.K_w, pygame.K_q] and (pygame.key.get_mods() & (pygame.KMOD_META if sys.platform == "darwin" else pygame.KMOD_CTRL)):
+                                pygame.quit()
+                                sys.exit()
+                else:
+                    sys.exit(0)
+class ServerPlayer:
+    def __init__(self, host='localhost', port=2048):
+        import socket
+        self.host = host
+        self.port = port
+        self.s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.s.bind((host, port))
+        self.s.listen()
+        print("Waiting for users...")
+        self.user = self.newUser()
+        self.clock = pygame.time.Clock()
+        self.key = None
+    def newUser(self):
+        global version
+        stream, addr = self.s.accept()
+        print("User joining...")
+        uservers = stream.recv(2048)
+        if uservers != bytearray(version, encoding='UTF-8'):
+            stream.sendall(bytearray('', encoding='UTF-8'))
+            raise Exception("mismatched versions of 2048!")
+        else:
+            stream.sendall(bytearray("OK", encoding='UTF-8'))
+        name = stream.recv(2048)
+        print("User "+name.decode()+" connected!")
+        return (stream, name.decode())
+    def send(self, msg):
+        if type(msg) == bytearray:
+            self.user[0].sendall(msg)
+        elif type(msg) == str:
+            self.user[0].sendall(bytearray(msg, encoding='UTF-8'))
+        else:
+            self.user[0].sendall(bytearray(msg))
+    def sendObjects(self):
+        global objects
+        import pickle
+        self.GO = False
+        self.update = True
+        while True:
+            if self.update:
+                self.send(bytearray(pickle.dumps((objects, score))))
+                self.update = False
+            elif self.GO:
+                self.send('')
+                sys.exit(0)
+            else:
+                self.send(bytearray(pickle.dumps("OK")))
+            try:
+                resp = self.user[0].recv(2048)
+                if not resp:
+                    break
+            except ConnectionResetError:
+                print("User "+self.user[1]+" disconnected!")
+                break
+        sys.exit(0)
 if __name__ == "__main__":
-    startGame(**addArgs())
+    args = addArgs()
+    if type(args['server']) == tuple:
+        online(host=args['server'][0], port=args['server'][1])
+    else:
+        startGame(**args)
