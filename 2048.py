@@ -411,6 +411,8 @@ def startGame(FPS=60, text=False, difficulty=2, width=400, square=False, load=No
     height = int(width*1.5)
     pygame.init()
     d = pygame.display.set_mode((width, height))
+    if server:
+        server.width, server.height = (width, height)
     pygame.display.set_caption('2048')
     clock = pygame.time.Clock()
     oldScore, score = updateDisplay(objects, oldScore, score, d, square=square, frame=1)
@@ -769,6 +771,8 @@ class ServerPlayer:
                 print("User "+self.user[1]+" disconnected!")
                 break
         self.__init__(host=self.host, port=self.port)
+        self.send(bytearray(pickle.dumps((self.width, self.height))))
+        self.sendObjects()
 if __name__ == "__main__":
     args = addArgs()
     if type(args['server']) == tuple:
