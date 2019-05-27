@@ -718,7 +718,7 @@ def online(host='localhost', port=2048, name='2048 Player', FPS=60, square=False
                 else:
                     sys.exit(0)
 class ServerPlayer:
-    def __init__(self, host='localhost', port=2048):
+    def __init__(self, host='0.0.0.0', port=2048):
         import socket
         self.host = host
         self.port = port
